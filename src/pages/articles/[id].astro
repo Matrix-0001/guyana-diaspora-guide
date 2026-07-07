@@ -1,0 +1,142 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
+import { CATEGORIES } from '../../lib/categories';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  return articles.map((article) => ({
+    params: { id: article.id },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const { Content, headings } = await render(article);
+const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'long', timeZone: 'UTC' });
+
+const tocHeadings = headings.filter((h) => h.depth === 2);
+
+const allArticles = await getCollection('articles');
+const others = allArticles
+  .filter((a) => a.id !== article.id)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const related = [
+  ...others.filter((a) => a.data.category === article.data.category),
+  ...others.filter((a) => a.data.category !== article.data.category),
+].slice(0, 3);
+
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
+const faqs = article.data.faqs ?? [];
+const jsonLd: object[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.data.title,
+    description: article.data.description,
+    datePublished: article.data.pubDate.toISOString(),
+    dateModified: (article.data.updatedDate ?? article.data.pubDate).toISOString(),
+    mainEntityOfPage: canonical,
+    author: { '@type': 'Organization', name: 'Guyana Diaspora Guide' },
+    publisher: { '@type': 'Organization', name: 'Guyana Diaspora Guide' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: Astro.site?.href ?? '/' },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: CATEGORIES[article.data.category],
+        item: Astro.site ? new URL(`/category/${article.data.category}/`, Astro.site).href : `/category/${article.data.category}/`,
+      },
+      { '@type': 'ListItem', position: 3, name: article.data.title, item: canonical },
+    ],
+  },
+];
+if (faqs.length > 0) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  });
+}
+---
+
+<BaseLayout title={article.data.title} description={article.data.description}>
+  <header class="article-header">
+    <span class="kicker">{CATEGORIES[article.data.category]}</span>
+    <h1>{article.data.title}</h1>
+    <p class="article-meta">
+      Published {dateFormat.format(article.data.pubDate)}
+      {article.data.updatedDate && ` · Updated ${dateFormat.format(article.data.updatedDate)}`}
+    </p>
+    <ShareButtons title={article.data.title} />
+  </header>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <article class="prose">
+    {
+      tocHeadings.length >= 3 && (
+        <nav class="toc" aria-label="Table of contents">
+          <strong>On this page</strong>
+          <ol>
+            {tocHeadings.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+    <Content />
+    {
+      faqs.length > 0 && (
+        <section class="faq">
+          <h2>Frequently asked questions</h2>
+          {faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </section>
+      )
+    }
+    <p class="disclaimer">
+      This guide is general information, not legal or financial advice. Fees, rates, and
+      requirements change — confirm with the official agency or provider before you act.
+    </p>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="ad-slot">Advertisement</div>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Keep reading</h2>
+      <div class="card-grid">
+        {
+          related.map((a) => (
+            <article class="card">
+              <span class="kicker">{CATEGORIES[a.data.category]}</span>
+              <h3>
+                <a href={`/articles/${a.id}/`}>{a.data.title}</a>
+              </h3>
+              <p>{a.data.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

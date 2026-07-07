@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Barrel Shipping Cost Calculator — Total Cost to Ship a Barrel to Guyana"
+  description="Estimate the true all-in cost of shipping a barrel to Guyana: barrel purchase, ocean freight, pickup charges, and customs clearance at the Georgetown wharf."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Barrel Shipping Cost Calculator</h1>
+      <p>
+        The freight quote is only part of the price. Add up everything — barrel, freight, pickup,
+        and clearance in Guyana — to see what your barrel really costs door to door.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: var(--content-width);">
+      <div class="tool-panel">
+        <label for="barrel-cost">Barrel purchase (USD) — new fiber/plastic barrel from the shipper</label>
+        <input type="number" id="barrel-cost" value="40" min="0" step="1" />
+
+        <label for="freight-cost">Ocean freight quote (USD)</label>
+        <input type="number" id="freight-cost" value="140" min="0" step="1" />
+
+        <label for="pickup-cost">Home pickup charge (USD) — enter 0 if you drop off at the warehouse</label>
+        <input type="number" id="pickup-cost" value="25" min="0" step="1" />
+
+        <label for="clearance-cost">Customs &amp; wharf clearance in Guyana (USD equivalent)</label>
+        <input type="number" id="clearance-cost" value="30" min="0" step="1" />
+
+        <label for="extra-cost">Other costs (USD) — paperwork fees, transport from the wharf, etc.</label>
+        <input type="number" id="extra-cost" value="0" min="0" step="1" />
+
+        <div class="tool-result" id="barrel-result">—</div>
+
+        <p class="disclaimer">
+          Pre-filled numbers are <strong>typical examples</strong> — replace them with your
+          shipper's actual quote and your consignee's clearance estimate. Around Christmas, the
+          Government of Guyana has often announced a duty concession on personal-effects barrels;
+          check the Guyana Revenue Authority's announcements before budgeting for duty.
+        </p>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 3rem;">Related guides</h2>
+      <ul>
+        <li><a href="/articles/shipping-barrel-to-guyana-cost/">Shipping a barrel to Guyana: what it really costs</a></li>
+        <li><a href="/articles/cheapest-way-to-send-money-to-guyana/">The cheapest way to send money to Guyana</a></li>
+        <li><a href="/tools/">Compare money transfer fees</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <script>
+    const ids = ['barrel-cost', 'freight-cost', 'pickup-cost', 'clearance-cost', 'extra-cost'];
+
+    function recalc() {
+      const total = ids.reduce((sum, id) => {
+        const el = document.getElementById(id) as HTMLInputElement;
+        return sum + (parseFloat(el.value) || 0);
+      }, 0);
+      document.getElementById('barrel-result')!.innerHTML =
+        'Estimated all-in cost: <strong>US$' +
+        total.toLocaleString('en-US', { maximumFractionDigits: 2 }) +
+        '</strong> per barrel, door to door';
+    }
+
+    ids.forEach((id) => document.getElementById(id)!.addEventListener('input', recalc));
+    recalc();
+  </script>
+</BaseLayout>

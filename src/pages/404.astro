@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../lib/categories';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="That page doesn't exist — browse our guides for the Guyanese diaspora instead."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Page not found</h1>
+      <p>That link is broken or the page has moved — but the guides are all still here.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Try one of these instead</h2>
+      <div class="card-grid">
+        {
+          Object.entries(CATEGORIES).map(([id, label]) => (
+            <article class="card">
+              <h3>
+                <a href={`/category/${id}/`}>{label}</a>
+              </h3>
+            </article>
+          ))
+        }
+        <article class="card">
+          <h3><a href="/tools/">Tools &amp; calculators</a></h3>
+        </article>
+        <article class="card">
+          <h3><a href="/">Back to the homepage</a></h3>
+        </article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

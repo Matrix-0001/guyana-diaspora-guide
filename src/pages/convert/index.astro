@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CURRENCIES, AMOUNTS, RATES_UPDATED, formatGyd } from '../../lib/currencies';
+---
+
+<BaseLayout
+  title="Currency Converter — USD, CAD & GBP to Guyanese Dollars"
+  description="Convert US dollars, Canadian dollars, and British pounds to Guyanese dollars (GYD) at approximate current rates, with conversion tables for common amounts."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Convert to Guyanese Dollars</h1>
+      <p>
+        Quick conversions from the currencies the diaspora sends most — updated {RATES_UPDATED}.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="card-grid">
+        {
+          Object.entries(CURRENCIES).map(([key, c]) => (
+            <article class="card">
+              <span class="kicker">{c.code} → GYD</span>
+              <h3>{c.name}s to Guyanese dollars</h3>
+              <p>≈ G${c.rate} per {c.code} · sent mostly from {c.region}</p>
+              <p>
+                {AMOUNTS.slice(0, 8).map((a, i) => (
+                  <>
+                    {i > 0 && ' · '}
+                    <a href={`/convert/${a}-${key}-to-gyd/`}>{c.symbol}{a.toLocaleString('en-US')}</a>
+                  </>
+                ))}
+              </p>
+            </article>
+          ))
+        }
+      </div>
+
+      <p class="disclaimer" style="margin-top: 2rem;">
+        Rates are approximate mid-market rates for reference. Actually sending money? What matters
+        is the payout rate after fees — compare services with the
+        <a href="/tools/">remittance fee calculator</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

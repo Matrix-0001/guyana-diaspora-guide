@@ -1,0 +1,80 @@
+---
+import '../styles/global.css';
+import { CATEGORIES } from '../lib/categories';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
+const currentPath = Astro.url.pathname;
+const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-image.png';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | Guyana Diaspora Guide</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Guyana Diaspora Guide" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <!-- Google AdSense script goes here once the site is approved -->
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="flag-bar"></div>
+      <div class="header-inner">
+        <a class="site-logo" href="/">Guyana <span>Diaspora</span> Guide</a>
+        <nav class="site-nav" aria-label="Main navigation">
+          {
+            Object.entries(CATEGORIES).map(([id, label]) => (
+              <a href={`/category/${id}/`} aria-current={currentPath === `/category/${id}/` ? 'page' : undefined}>
+                {label}
+              </a>
+            ))
+          }
+          <a href="/tools/" aria-current={currentPath === '/tools/' ? 'page' : undefined}>Tools</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-links">
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy-policy/">Privacy Policy</a>
+          <a href="/terms/">Terms of Use</a>
+        </div>
+        <p class="fine-print">
+          Guyana Diaspora Guide provides general information for Guyanese living abroad. It is not
+          legal, financial, or immigration advice. Fees, exchange rates, and government requirements
+          change often — always confirm details with the official agency or provider before acting.
+        </p>
+        <p class="fine-print">
+          &copy; {new Date().getFullYear()} Guyana Diaspora Guide. Built by
+          <a href="/contact/">Savanna Studios</a> — web design &amp; development.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

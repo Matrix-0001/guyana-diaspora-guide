@@ -1,0 +1,83 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../lib/categories';
+
+const articles = (await getCollection('articles')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout
+  title="Practical guides for Guyanese living abroad"
+  description="Clear, up-to-date guides on sending money to Guyana, sponsoring family, renewing your Guyanese passport, shipping barrels, and buying property back home."
+>
+  <section class="hero-banner">
+    <svg class="hero-arrow" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <polygon points="0,40 400,200 0,360" fill="#f5b700" opacity="0.22" />
+      <polygon points="0,100 260,200 0,300" fill="#ce1126" opacity="0.28" />
+      <polygon points="0,150 140,200 0,250" fill="#ffffff" opacity="0.12" />
+    </svg>
+    <div class="container hero-banner-inner">
+      <span class="hero-eyebrow">For Guyanese abroad — New York to Toronto to London</span>
+      <h1>Everything you need to handle business back home in Guyana</h1>
+      <p>
+        Straightforward guides for the diaspora — sending money, sponsoring family, renewing
+        passports, shipping barrels, and investing in property during the oil boom.
+      </p>
+      <div class="hero-actions">
+        <a class="btn gold" href="/tools/">Compare money transfer fees →</a>
+        <a class="btn ghost" href="/category/immigration/">Immigration guides</a>
+      </div>
+      <ul class="hero-stats">
+        <li><strong>500,000+</strong> Guyanese living abroad</li>
+        <li><strong>US$400M+</strong> sent home every year</li>
+        <li><strong>≈ G$208</strong> to US$1</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Latest guides</h2>
+      <div class="card-grid">
+        {
+          articles.map((article) => (
+            <article class="card">
+              <span class="kicker">{CATEGORIES[article.data.category]}</span>
+              <h3>
+                <a href={`/articles/${article.id}/`}>{article.data.title}</a>
+              </h3>
+              <p>{article.data.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background: var(--bg-soft);">
+    <div class="container">
+      <h2 class="section-title">Browse by topic</h2>
+      <div class="card-grid">
+        {
+          Object.entries(CATEGORIES).map(([id, label]) => (
+            <article class="card">
+              <h3>
+                <a href={`/category/${id}/`}>{label}</a>
+              </h3>
+              <p>
+                {id === 'money' && 'Remittances, transfer fees, exchange rates, and shipping barrels home.'}
+                {id === 'immigration' && 'Family sponsorship, visa interviews, and moving between Guyana and abroad.'}
+                {id === 'documents' && 'Guyanese passports, birth certificates, and consulate services overseas.'}
+                {id === 'property' && 'Buying land, building, and investing in Guyana from overseas.'}
+              </p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

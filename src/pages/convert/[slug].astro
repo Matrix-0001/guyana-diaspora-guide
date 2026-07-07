@@ -1,0 +1,182 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CURRENCIES, AMOUNTS, RATES_UPDATED, formatGyd, type CurrencyKey } from '../../lib/currencies';
+
+export async function getStaticPaths() {
+  return Object.keys(CURRENCIES).flatMap((key) =>
+    AMOUNTS.map((amount) => ({
+      params: { slug: `${amount}-${key}-to-gyd` },
+      props: { currencyKey: key as CurrencyKey, amount },
+    }))
+  );
+}
+
+const { currencyKey, amount } = Astro.props;
+const currency = CURRENCIES[currencyKey];
+const result = amount * currency.rate;
+const title = `${amount} ${currency.code} to GYD — ${currency.symbol}${amount.toLocaleString('en-US')} in Guyanese Dollars`;
+
+const faqs = [
+  {
+    q: `How much is ${currency.symbol}${amount.toLocaleString('en-US')} in Guyanese dollars?`,
+    a: `At an approximate rate of G$${currency.rate} per ${currency.name}, ${currency.symbol}${amount.toLocaleString('en-US')} is about ${formatGyd(result)}. Rates move daily, so check the live rate before exchanging or sending money.`,
+  },
+  {
+    q: `What is the ${currency.code} to GYD exchange rate?`,
+    a: `The ${currency.name} trades at roughly G$${currency.rate} (as of ${RATES_UPDATED}). Banks, cambios, and money transfer services each quote their own buy and sell rates, usually slightly below the mid-market rate.`,
+  },
+  {
+    q: `What's the best way to send ${currency.plural} to Guyana?`,
+    a: `Compare at least two licensed transfer services on both the fee and the payout rate — the exchange rate markup is usually the bigger cost. Our remittance fee calculator makes the comparison easy.`,
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={`${currency.symbol}${amount.toLocaleString('en-US')} is about ${formatGyd(result)} at current rates. Convert ${currency.plural} to Guyanese dollars and compare money transfer costs to Guyana.`}
+>
+  <section class="hero">
+    <div class="container">
+      <h1>{amount.toLocaleString('en-US')} {currency.code} to GYD</h1>
+      <p>How much is {currency.symbol}{amount.toLocaleString('en-US')} in Guyanese dollars right now?</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: var(--content-width);">
+      <div class="tool-result" style="font-size: 1.2rem;">
+        {currency.symbol}{amount.toLocaleString('en-US')} ≈ <strong data-gyd-for={amount}>{formatGyd(result)}</strong>
+        <div id="rate-note" style="font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.25rem;">
+          at ≈ G${currency.rate} per {currency.code} (approximate mid-market rate, {RATES_UPDATED})
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <label for="amount-input">Convert a different amount</label>
+        <input type="number" id="amount-input" value={amount} min="0" step="any" />
+        <label for="rate-input">Rate (GYD per {currency.code})</label>
+        <input type="number" id="rate-input" value={currency.rate} min="0" step="0.1" data-code={currency.code} />
+        <div class="tool-result" id="live-result">—</div>
+        <p class="disclaimer">
+          Rates shown are approximate mid-market rates. Banks, cambios, and transfer services quote
+          their own rates — when sending money, what matters is the payout rate after fees. Compare
+          real costs with our <a href="/tools/">remittance fee calculator</a>.
+        </p>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 3rem;">{currency.code} to GYD conversion table</h2>
+      <table class="prose-table fee-table">
+        <thead>
+          <tr><th>{currency.name}s</th><th>Guyanese dollars</th></tr>
+        </thead>
+        <tbody>
+          {
+            AMOUNTS.map((a) => (
+              <tr class={a === amount ? 'best' : undefined}>
+                <td>
+                  {a === amount ? (
+                    `${currency.symbol}${a.toLocaleString('en-US')}`
+                  ) : (
+                    <a href={`/convert/${a}-${currencyKey}-to-gyd/`}>{currency.symbol}{a.toLocaleString('en-US')}</a>
+                  )}
+                </td>
+                <td data-gyd-for={a}>{formatGyd(a * currency.rate)}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+
+      <div class="faq">
+        <h2 class="section-title" style="margin-top: 3rem;">Frequently asked questions</h2>
+        {
+          faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+
+      <h2 class="section-title" style="margin-top: 3rem;">Other currencies</h2>
+      <ul>
+        {
+          Object.entries(CURRENCIES)
+            .filter(([key]) => key !== currencyKey)
+            .map(([key, c]) => (
+              <li>
+                <a href={`/convert/${amount}-${key}-to-gyd/`}>{amount.toLocaleString('en-US')} {c.code} to GYD</a>
+              </li>
+            ))
+        }
+        <li><a href="/articles/cheapest-way-to-send-money-to-guyana/">The cheapest way to send money to Guyana</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    const amountInput = document.getElementById('amount-input') as HTMLInputElement;
+    const rateInput = document.getElementById('rate-input') as HTMLInputElement;
+
+    function recalc() {
+      const amount = parseFloat(amountInput.value) || 0;
+      const rate = parseFloat(rateInput.value) || 0;
+      const gyd = amount * rate;
+      document.getElementById('live-result')!.innerHTML =
+        amount.toLocaleString('en-US') +
+        ' ≈ <strong>G$' +
+        gyd.toLocaleString('en-US', { maximumFractionDigits: 0 }) +
+        '</strong>';
+    }
+
+    amountInput.addEventListener('input', recalc);
+    rateInput.addEventListener('input', recalc);
+    recalc();
+
+    // Refresh with today's live rate; the baked-in rate stays as fallback.
+    const code = rateInput.dataset.code;
+    fetch(`https://open.er-api.com/v6/latest/${code}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const liveRate = data?.rates?.GYD;
+        if (data?.result !== 'success' || !liveRate) return;
+        rateInput.value = liveRate.toFixed(2);
+        recalc();
+        document.querySelectorAll<HTMLElement>('[data-gyd-for]').forEach((el) => {
+          const amt = parseFloat(el.dataset.gydFor || '0');
+          el.textContent =
+            'G$' + (amt * liveRate).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        });
+        const updated = new Date(data.time_last_update_utc).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        const note = document.getElementById('rate-note');
+        if (note) {
+          note.textContent = `at G$${liveRate.toFixed(2)} per ${code} — live mid-market rate, updated ${updated}`;
+        }
+      })
+      .catch(() => {
+        // API unreachable — the baked-in approximate rate remains shown.
+      });
+  </script>
+</BaseLayout>
