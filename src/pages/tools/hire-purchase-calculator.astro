@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const faqs = [
+  {
+    q: 'How does hire purchase work in Guyana?',
+    a: "You pay a deposit, take the item home, and pay fixed monthly installments — but you don't own it until the final payment, and the store can repossess if you default. Stores quote a 'flat' interest amount spread over the term, which hides the true interest rate: because your balance falls every month but the interest doesn't, the effective rate is roughly double the flat rate.",
+  },
+  {
+    q: 'Is hire purchase more expensive than a bank loan?',
+    a: 'Almost always, yes. A store plan quoting a 15% flat rate is really charging an effective rate in the high twenties, while banks quote reducing-balance rates where you only pay interest on what you still owe. This calculator shows both, side by side, for the same item.',
+  },
+  {
+    q: 'What are my rights under the Hire Purchase Act?',
+    a: "Guyana's Hire Purchase Act 2022 strengthened consumer protections around disclosure, repossession, and settlement of hire purchase agreements. Before signing, ask for the cash price, the total hire purchase price, and the settlement terms in writing — the difference between those two prices is what the credit really costs you.",
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Hire Purchase Calculator Guyana — True Cost vs Bank Loan"
+  description="See what hire purchase in Guyana really costs — total interest, the true effective rate hiding behind the store's flat rate, and a side-by-side comparison with a bank loan for the same item."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Hire Purchase Calculator</h1>
+      <p>
+        Store financing quotes a "flat" rate that hides the real cost. See the true rate on any
+        hire purchase plan — and what the same item costs with a bank loan instead.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter the cash price and deposit</li>
+        <li><span class="step-num">2</span> Add the store's monthly installment and term</li>
+        <li><span class="step-num">3</span> See the true rate — and what a bank loan saves</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">✓ Standard finance math — enter the store's actual quote and see the true rate</p>
+
+            <label for="price">Cash price of the item (G$)</label>
+        <input type="number" id="price" value="300000" min="0" step="1000" />
+
+        <label for="deposit">Deposit (G$)</label>
+        <input type="number" id="deposit" value="50000" min="0" step="1000" />
+
+        <label for="installment">Monthly installment the store quoted (G$)</label>
+        <input type="number" id="installment" value="15000" min="0" step="500" />
+
+        <label for="months">Number of monthly payments</label>
+        <input type="number" id="months" value="24" min="1" max="72" step="1" />
+
+        <label for="bankrate">Bank loan rate to compare (% per year, reducing balance)</label>
+        <input type="number" id="bankrate" value="12" min="1" max="30" step="0.5" />
+
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">The real cost</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Ask the store for the cash price and the total hire purchase price in writing before
+            signing — Guyana's Hire Purchase Act 2022 governs disclosure and repossession. Bank
+            comparison uses standard reducing-balance math; actual bank offers add fees and their own
+            approval rules.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/tools/salary-calculator/">Salary &amp; Tax Calculator — what you can actually afford</a>
+            <a href="/tools/mortgage-calculator/">Mortgage &amp; Loan Calculator</a>
+            <a href="/articles/cheapest-way-to-send-money-to-guyana/">The cheapest way to send money to Guyana</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    // Solve the monthly rate where PV of installments equals the financed amount (bisection).
+    function impliedMonthlyRate(principal: number, installment: number, months: number): number {
+      if (installment * months <= principal) return 0;
+      let lo = 0, hi = 0.2;
+      for (let i = 0; i < 100; i++) {
+        const mid = (lo + hi) / 2;
+        const pv = mid === 0 ? installment * months : (installment * (1 - Math.pow(1 + mid, -months))) / mid;
+        if (pv > principal) lo = mid;
+        else hi = mid;
+      }
+      return (lo + hi) / 2;
+    }
+
+    function calculate() {
+      const price = parseFloat($('price').value) || 0;
+      const deposit = parseFloat($('deposit').value) || 0;
+      const installment = parseFloat($('installment').value) || 0;
+      const months = parseInt($('months').value, 10) || 0;
+      const bankRate = parseFloat($('bankrate').value) || 0;
+      const box = document.getElementById('result-box')!;
+
+      const principal = price - deposit;
+      if (price <= 0 || principal <= 0 || installment <= 0 || months <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter the store’s quote to compare.</div>';
+        return;
+      }
+
+      const totalHp = deposit + installment * months;
+      const hpInterest = totalHp - price;
+      const flatRate = (hpInterest / principal) / (months / 12) * 100;
+      const trueApr = impliedMonthlyRate(principal, installment, months) * 12 * 100;
+
+      const r = bankRate / 100 / 12;
+      const bankPayment = (principal * r) / (1 - Math.pow(1 + r, -months));
+      const bankTotal = deposit + bankPayment * months;
+      const savings = totalHp - bankTotal;
+
+      box.innerHTML = `
+        <div class="tool-result">
+          ${hpInterest <= 0
+            ? 'This plan costs no more than the cash price — unusual, double-check the quote.'
+            : `True effective rate: <strong>${trueApr.toFixed(1)}%/yr</strong><span style="font-size:0.88rem;display:block;margin-top:0.25rem;">(the store's "flat" ${flatRate.toFixed(1)}%/yr in disguise)</span>`}
+          <table style="margin-top:0.6rem;">
+            <thead><tr><th></th><th style="text-align:right;">Hire purchase</th><th style="text-align:right;">Bank (${bankRate}%)</th></tr></thead>
+            <tbody>
+              <tr><td>Monthly</td><td style="text-align:right;">${fmt(installment)}</td><td style="text-align:right;">${fmt(bankPayment)}</td></tr>
+              <tr><td>Total paid</td><td style="text-align:right;">${fmt(totalHp)}</td><td style="text-align:right;">${fmt(bankTotal)}</td></tr>
+              <tr><td>Interest</td><td style="text-align:right;">${fmt(hpInterest)}</td><td style="text-align:right;">${fmt(bankTotal - price)}</td></tr>
+            </tbody>
+          </table>
+          ${hpInterest > 0
+            ? (savings > 0
+                ? `<span style="font-size:0.88rem;display:block;margin-top:0.5rem;">A bank loan at ${bankRate}% would save you about <strong style="font-size:1rem;">${fmt(savings)}</strong> on this item.</span>`
+                : `<span style="font-size:0.88rem;display:block;margin-top:0.5rem;">At ${bankRate}%, a bank loan would not beat this plan.</span>`)
+            : ''}
+        </div>
+      `;
+
+      const params = new URLSearchParams({
+        price: String(price), deposit: String(deposit), pay: String(installment), months: String(months), bank: String(bankRate),
+      });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Hire purchase check: ${fmt(price)} item, ${fmt(installment)}/month × ${months} = ${fmt(totalHp)} total — a true rate of ${trueApr.toFixed(1)}%/yr. ` +
+        `Check yours: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['price', 'deposit', 'installment', 'months', 'bankrate'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('price')) $('price').value = qp.get('price')!;
+    if (qp.has('deposit')) $('deposit').value = qp.get('deposit')!;
+    if (qp.has('pay')) $('installment').value = qp.get('pay')!;
+    if (qp.has('months')) $('months').value = qp.get('months')!;
+    if (qp.has('bank')) $('bankrate').value = qp.get('bank')!;
+    calculate();
+  </script>
+</BaseLayout>

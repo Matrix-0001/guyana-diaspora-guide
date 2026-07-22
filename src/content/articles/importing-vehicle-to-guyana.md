@@ -24,7 +24,7 @@ Vehicle imports face a **stack** of charges — import duty, excise tax, and VAT
 2. **Age** — vehicles **over four years old** are assessed differently (flat-rate excise regimes have applied) than newer ones; the four-year line has long been the industry's pivot point
 3. **Fuel type** — Guyana has offered **sharply reduced taxes on electric vehicles** and incentives for lower-emission choices; if you've been EV-curious, the tax table is genuinely persuasive
 
-The rates get adjusted in national budgets, so treat any specific number you've heard as dated: before committing to anything, get the current figure from the **GRA's duty calculator** or — better — a **licensed customs broker** in Georgetown quoting on your exact vehicle (make, model, year, engine cc, value). That quote is the foundation of the whole decision.
+The rates get adjusted in national budgets, so treat any specific number you've heard as dated: before committing to anything, run your vehicle through our [vehicle import duty calculator](/tools/vehicle-import-calculator/) for an estimate, then get the binding figure from a **licensed customs broker** in Georgetown quoting on your exact vehicle (make, model, year, engine cc, value). That quote is the foundation of the whole decision.
 
 ## The big exception: the remigrant concession
 

@@ -1,0 +1,220 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const TRIPS = [
+  { label: 'Georgetown → CJIA (Timehri)', km: 41 },
+  { label: 'Georgetown → Parika', km: 42 },
+  { label: 'Georgetown → Linden', km: 107 },
+  { label: 'Georgetown → New Amsterdam', km: 105 },
+  { label: 'Georgetown → Corriverton', km: 190 },
+  { label: 'Georgetown → Lethem', km: 530 },
+  { label: 'New Amsterdam → Corriverton', km: 85 },
+];
+
+const faqs = [
+  {
+    q: 'How do I work out the fuel cost of a trip in Guyana?',
+    a: 'Divide the distance by your vehicle’s consumption (km per litre) to get litres used, then multiply by the pump price per litre. Example: a 107 km run from Georgetown to Linden in a car doing 12 km/L uses about 9 litres each way — double it for the round trip.',
+  },
+  {
+    q: 'How far is Georgetown from Lethem by road?',
+    a: 'Roughly 530 km via the Linden–Lethem road — a full day’s drive whose southern stretches remain unpaved, so fuel consumption is also worse than highway driving. Fill up in Linden; fuel stops are sparse after that.',
+  },
+  {
+    q: 'What is a typical fuel consumption for cars in Guyana?',
+    a: 'Small cars like a Vitz or Aqua commonly manage 12–18 km/L (hybrids at the top of that range), mid-size sedans 10–12 km/L, and SUVs and pickups 7–10 km/L. Loaded vehicles, AC, and rough roads all push consumption up.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Trip Fuel Cost Calculator Guyana — Fuel Cost for Any Journey"
+  description="Work out the fuel cost of any trip in Guyana — pick a common route or enter a distance, your vehicle's consumption, and the current pump price. One-way or round trip."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Trip Fuel Cost Calculator</h1>
+      <p>
+        Berbice for the weekend? Lethem for rodeo? Work out what the fuel will cost before you leave
+        town.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Pick a route or enter your distance</li>
+        <li><span class="step-num">2</span> Add your vehicle's consumption and today's pump price</li>
+        <li><span class="step-num">3</span> See the fuel cost before you leave town</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+        <label for="trip">Common routes (approximate road distances)</label>
+        <select id="trip">
+          <option value="">— pick a route or enter distance below —</option>
+          {TRIPS.map((t) => <option value={t.km}>{t.label} (~{t.km} km)</option>)}
+        </select>
+
+        <label for="distance">Distance (km)</label>
+        <input type="number" id="distance" value="107" min="0" step="1" />
+
+        <label for="vehicle-type">Don't know your consumption? Pick what you drive</label>
+        <select id="vehicle-type">
+          <option value="">— I'll enter my own km/L below —</option>
+          <option value="18">Hybrid hatchback (Aqua, Fit Hybrid, Note e-Power) — ~18 km/L</option>
+          <option value="14">Small hatchback (Vitz, Swift, Demio, Passo) — ~14 km/L</option>
+          <option value="11">Sedan (Allion, Premio, Axio, Fielder) — ~11 km/L</option>
+          <option value="10">Minivan / 7-seater (Noah, Voxy, Sienta) — ~10 km/L</option>
+          <option value="9">SUV / crossover (RAV4, X-Trail, CR-V, Vezel) — ~9 km/L</option>
+          <option value="8">Double-cab pickup, diesel (Hilux, Navara, L200) — ~8 km/L</option>
+          <option value="7">Large SUV (Prado, Land Cruiser, Alphard) — ~7 km/L</option>
+        </select>
+
+        <label for="consumption">Your vehicle's consumption (km per litre)</label>
+        <input type="number" id="consumption" value="12" min="1" max="40" step="0.5" />
+
+        <label for="fuelprice">Pump price (G$ per litre) — use today's price at your station</label>
+        <input type="number" id="fuelprice" value="1000" min="0" step="10" />
+
+        <label for="roundtrip" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+          <input type="checkbox" id="roundtrip" style="width: auto;" checked />
+          Round trip
+        </label>
+
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Trip cost</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Route distances are approximate; enter the pump price from your station since fuel prices
+            change. Interior driving (especially Linden–Lethem) increases consumption — budget extra.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/cheddi-jagan-airport-guide/">Flying home to Guyana: the CJIA guide</a>
+            <a href="/tools/vehicle-import-calculator/">Vehicle Import Duty Calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function calculate() {
+      const distance = parseFloat($('distance').value) || 0;
+      const kmPerL = parseFloat($('consumption').value) || 0;
+      const price = parseFloat($('fuelprice').value) || 0;
+      const round = ($('roundtrip') as HTMLInputElement).checked;
+      const box = document.getElementById('result-box')!;
+
+      if (distance <= 0 || kmPerL <= 0 || price <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter distance, consumption, and pump price.</div>';
+        return;
+      }
+
+      const totalKm = distance * (round ? 2 : 1);
+      const litres = totalKm / kmPerL;
+      const cost = litres * price;
+
+      box.innerHTML = `
+        <div class="tool-result">
+          Fuel cost: <strong>${fmt(cost)}</strong> ${round ? 'round trip' : 'one way'}<br />
+          <span style="font-size:0.95rem;">${totalKm.toLocaleString('en-US')} km ÷ ${kmPerL} km/L = ${litres.toFixed(1)} litres at ${fmt(price)}/L</span>
+        </div>
+      `;
+
+      const params = new URLSearchParams({
+        km: String(distance), kmpl: String(kmPerL), price: String(price), rt: round ? '1' : '0',
+      });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary = `Fuel for ${distance} km ${round ? 'round trip' : 'one way'} in Guyana: ~${litres.toFixed(1)} L = ${fmt(cost)}. Calculate yours: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    $('trip').addEventListener('input', () => {
+      const km = $('trip').value;
+      if (km) {
+        $('distance').value = km;
+        calculate();
+      }
+    });
+
+    // Vehicle-type presets fill in a typical consumption; typing your own
+    // km/L switches the picker back to "enter my own".
+    $('vehicle-type').addEventListener('input', () => {
+      const kmpl = $('vehicle-type').value;
+      if (kmpl) {
+        $('consumption').value = kmpl;
+        calculate();
+      }
+    });
+
+    $('consumption').addEventListener('input', () => {
+      const sel = $('vehicle-type');
+      if (sel.value && sel.value !== $('consumption').value) sel.value = '';
+    });
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['distance', 'consumption', 'fuelprice', 'roundtrip'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('km')) $('distance').value = qp.get('km')!;
+    if (qp.has('kmpl')) $('consumption').value = qp.get('kmpl')!;
+    if (qp.has('price')) $('fuelprice').value = qp.get('price')!;
+    if (qp.get('rt') === '0') ($('roundtrip') as HTMLInputElement).checked = false;
+    calculate();
+  </script>
+</BaseLayout>

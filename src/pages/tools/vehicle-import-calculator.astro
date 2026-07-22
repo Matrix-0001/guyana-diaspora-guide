@@ -1,0 +1,681 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CURRENCIES } from '../../lib/currencies';
+
+const PRESETS = [
+  { label: 'Toyota Aqua (hybrid)', cc: 1500, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Toyota Vitz', cc: 1300, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Passo', cc: 1000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Yaris', cc: 1500, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Corolla Axio', cc: 1500, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Fielder (hybrid)', cc: 1500, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Toyota Premio 1.8', cc: 1800, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Allion 1.8', cc: 1800, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Prius', cc: 1800, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Toyota C-HR (hybrid)', cc: 1800, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Toyota Raize', cc: 1000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Sienta (hybrid)', cc: 1500, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Toyota Noah / Voxy', cc: 2000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota RAV4 2.0', cc: 2000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Harrier 2.0', cc: 2000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Alphard 2.5', cc: 2500, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Land Cruiser Prado 2.7', cc: 2700, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Toyota Hilux double-cab (diesel)', cc: 2800, fuel: 'diesel', vtype: 'doublecab' },
+  { label: 'Honda Fit (hybrid)', cc: 1500, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Honda Vezel (hybrid)', cc: 1500, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Honda CR-V 2.4', cc: 2400, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Nissan Note e-Power', cc: 1200, fuel: 'hybrid', vtype: 'car' },
+  { label: 'Nissan X-Trail 2.0', cc: 2000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Nissan Navara double-cab (diesel)', cc: 2500, fuel: 'diesel', vtype: 'doublecab' },
+  { label: 'Mazda Demio', cc: 1300, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Mazda CX-5 2.0', cc: 2000, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Suzuki Swift', cc: 1200, fuel: 'gasoline', vtype: 'car' },
+  { label: 'Mitsubishi L200 double-cab (diesel)', cc: 2400, fuel: 'diesel', vtype: 'doublecab' },
+];
+
+const faqs = [
+  {
+    q: 'How much duty will I pay on a car in Guyana?',
+    a: "It depends on engine size, fuel type, age, and who's importing. A used gasoline car up to 1500cc pays a flat G$800,000 in total taxes, a double-cab pickup up to 2500cc pays a flat G$2–3 million under Budget 2026, and a new large-engine SUV can attract combined taxes approaching double its value. Use the calculator above for your specific vehicle.",
+  },
+  {
+    q: 'What changed for vehicle imports in Budget 2026?',
+    a: 'Effective February 16, 2026: VAT was removed on new vehicles under 1500cc (under 4 years old) and on hybrids up to 2000cc (under 4 years old); double-cab pickups now pay a flat tax — G$2 million up to 2000cc, G$3 million for 2001–2500cc — instead of the old duty/excise/VAT stack; and all taxes were removed on ATVs and outboard engines up to 150HP.',
+  },
+  {
+    q: 'Are electric vehicles tax-free to import into Guyana?',
+    a: 'Yes — fully electric vehicles are exempt from customs duty, excise tax, and VAT (a Budget 2023 measure that continues). Hybrids under 4 years old and up to 2000cc are excise-exempt and, since Budget 2026, VAT-exempt too — they pay only customs duty. This is why the Toyota Aqua dominates the used import market.',
+  },
+  {
+    q: 'How much do remigrants pay to import a vehicle?',
+    a: 'Approved re-migrants, settlers, and returning students are exempt from customs duty and VAT, paying only a reduced excise on CIF value: 5% up to 1800cc, 10% to 2000cc, 20% to 3000cc, 30% above. Conditions apply: typically 5+ years abroad for re-migrants, one vehicle per beneficiary, imported within about 6 months of returning, and the vehicle cannot be sold for a set period.',
+  },
+  {
+    q: 'Does the calculator work with BE FORWARD and SBT Japan links?',
+    a: "Yes — paste the listing link and the calculator reads the price, photos, engine size, and other details automatically. Check what it found: exporter prices are often FOB (excluding shipping), and the GRA taxes are computed on CIF — price plus shipping plus insurance — so fill in your freight quote for an accurate result.",
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guyana Vehicle Import Duty Calculator — GRA Duty, Excise & VAT (Budget 2026 Rates)"
+  description="Calculate the total import taxes on a vehicle to Guyana with current Budget 2026 rates — paste a BE FORWARD or SBT listing link or pick a model, and get the full GRA duty, excise, and VAT breakdown including flat rates, EV/hybrid exemptions, dealer rules, and remigrant concessions."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Vehicle Import Duty Calculator</h1>
+      <p>
+        The full GRA tax bill — duty, excise, and VAT at current Budget 2026 rates — before you buy
+        or ship. Paste a listing link, pick a popular model, or enter the details yourself.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Paste a listing link or pick a model</li>
+        <li><span class="step-num">2</span> Fill in the price, shipping, and vehicle details</li>
+        <li><span class="step-num">3</span> See the full GRA tax bill and landed cost</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel" style="border: 2px solid var(--green); background: #eef7f1;">
+        <h2 style="margin: 0 0 0.25rem; font-size: 1.2rem;">Paste the car's listing link</h2>
+        <p style="margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--ink-soft);">
+          Copy the link of any car on BE FORWARD, SBT Japan, TCV (tradecarview), or most exporter
+          sites and we'll pull the price and details automatically. Sold listings no longer show a
+          price, and a few sites (e.g. Car From Japan) block automated readers — for those, enter
+          the price manually.
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <input type="url" id="listing-url" placeholder="https://www.beforward.jp/..." style="flex: 1; min-width: 14rem; max-width: none;" />
+          <button class="btn" id="fetch-listing" type="button" style="border: none; cursor: pointer;">Read listing</button>
+        </div>
+        <p id="listing-status" class="disclaimer" style="border-top: none; padding-top: 0.25rem; margin-top: 0.5rem; display: none;"></p>
+        <div id="listing-result" style="display: none; margin-top: 0.75rem;"></div>
+        <div id="listing-charges" style="display: none; margin-top: 1rem;">
+          <h3 style="margin: 0 0 0.5rem; font-size: 1.05rem;">Your estimated taxes for this vehicle</h3>
+          <div id="listing-charges-body"></div>
+          <p class="disclaimer" style="border-top: none; margin: 0.5rem 0 0; padding-top: 0;">
+            Anything marked "not detected"? Set it in the calculator below — this table updates automatically.
+          </p>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <label for="preset" style="margin-top: 0;">No link? Pick a popular model</label>
+        <select id="preset">
+          <option value="">— choose a model —</option>
+          {PRESETS.map((p, i) => <option value={i}>{p.label}</option>)}
+        </select>
+
+        <label for="price">Vehicle price (US$)</label>
+        <input type="number" id="price" value="8000" min="0" step="100" />
+
+        <label for="ship">Shipping to Georgetown (US$) — RoRo typically $1,300–2,800, container $3,600+</label>
+        <input type="number" id="ship" value="1800" min="0" step="50" />
+
+        <label for="ins">Marine insurance (US$) — leave blank to estimate at 2.5% of price</label>
+        <input type="number" id="ins" placeholder="auto: 2.5% of price" min="0" step="10" />
+
+        <label for="cc">Engine size (cc)</label>
+        <input type="number" id="cc" value="1500" min="0" step="50" />
+
+        <label for="fuel">Fuel type</label>
+        <select id="fuel">
+          <option value="gasoline">Gasoline</option>
+          <option value="diesel">Diesel</option>
+          <option value="hybrid">Hybrid</option>
+          <option value="electric">Electric</option>
+        </select>
+
+        <label for="age">Vehicle age (GRA counts 48 months before January 1 of the import year)</label>
+        <select id="age">
+          <option value="over">4 years old or more</option>
+          <option value="under">Under 4 years old</option>
+        </select>
+
+        <label for="vtype">Vehicle type</label>
+        <select id="vtype">
+          <option value="car">Car / SUV / wagon</option>
+          <option value="doublecab">Double-cab pickup</option>
+        </select>
+
+        <label for="importer">Importer status</label>
+        <select id="importer">
+          <option value="private">Private importer</option>
+          <option value="dealer">Motor vehicle dealer (excise on 1.5× base)</option>
+          <option value="remigrant">Re-migrant / settler / returning student</option>
+        </select>
+
+        <label for="fx" style="margin-top: 1rem;">Exchange rate (GYD per US$)</label>
+        <input type="number" id="fx" value={CURRENCIES.usd.rate} min="1" step="0.1" />
+      </div>
+
+      <div>
+        <h2 class="section-title">Quick reference: current rate tables</h2>
+      <p style="font-size: 0.95rem; color: var(--ink-soft);">
+        For vehicles 4+ years old the GRA collects a single consolidated excise — duty and VAT show
+        0% because the excise formula <em>is</em> the tax. Formulas apply to CIF in US dollars.
+      </p>
+
+      <h3>Used gasoline vehicles (4+ years) — 0% duty, 0% VAT</h3>
+      <table class="fee-table">
+        <thead><tr><th>Engine (cc)</th><th>Excise (total tax)</th></tr></thead>
+        <tbody>
+          <tr><td>0 – 1,500</td><td>G$800,000 flat</td></tr>
+          <tr><td>1,501 – 1,800</td><td>(CIF + $6,000) × 30% + $6,000</td></tr>
+          <tr><td>1,801 – 2,000</td><td>(CIF + $6,500) × 30% + $6,500</td></tr>
+          <tr><td>2,001 – 3,000</td><td>(CIF + $13,500) × 70% + $13,500</td></tr>
+          <tr><td>Over 3,000</td><td>(CIF + $14,500) × 100% + $14,500</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Used diesel vehicles (4+ years) — 0% duty, 0% VAT</h3>
+      <table class="fee-table">
+        <thead><tr><th>Engine (cc)</th><th>Excise (total tax)</th></tr></thead>
+        <tbody>
+          <tr><td>0 – 1,500</td><td>G$800,000 flat</td></tr>
+          <tr><td>1,501 – 2,000</td><td>(CIF + $8,200) × 30% + $8,200</td></tr>
+          <tr><td>2,001 – 2,500</td><td>(CIF + $15,400) × 70% + $15,400</td></tr>
+          <tr><td>2,501 – 3,000</td><td>(CIF + $15,500) × 70% + $15,500</td></tr>
+          <tr><td>Over 3,000</td><td>(CIF + $17,200) × 100% + $17,200</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Vehicles under 4 years old</h3>
+      <table class="fee-table">
+        <thead><tr><th>Engine (cc)</th><th>Duty</th><th>Excise</th><th>VAT</th></tr></thead>
+        <tbody>
+          <tr><td>0 – 1,500</td><td>35%</td><td>0%</td><td><strong>Exempt</strong> (Budget 2026)</td></tr>
+          <tr><td>1,501 – 2,000</td><td>45%</td><td>10% of (CIF + duty)</td><td>14%</td></tr>
+          <tr><td>2,001 – 3,000</td><td>45%</td><td>110% of (CIF + duty)</td><td>14%</td></tr>
+          <tr><td>Over 3,000</td><td>45%</td><td>140% gasoline / 110% diesel</td><td>14%</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size: 0.9rem; color: var(--ink-soft);">
+        Registered motor-vehicle dealers pay excise on 1.5× the base. Hybrids up to 2000cc and under
+        4 years old are excise-exempt and VAT-exempt (pay duty only).
+      </p>
+
+      <h3>Special categories</h3>
+      <table class="fee-table">
+        <thead><tr><th>Category</th><th>Treatment</th></tr></thead>
+        <tbody>
+          <tr><td>Fully electric vehicles</td><td>Exempt from duty, excise, and VAT (Budget 2023)</td></tr>
+          <tr><td>Double-cab pickup ≤ 2,000cc</td><td>Flat G$2,000,000 — 0% duty, 0% VAT, any age (Budget 2026)</td></tr>
+          <tr><td>Double-cab pickup 2,001 – 2,500cc</td><td>Flat G$3,000,000 — 0% duty, 0% VAT, any age (Budget 2026)</td></tr>
+          <tr><td>Double-cab pickup 2,501 – 3,000cc (under 4 yrs)</td><td>45% duty, 75% excise, 14% VAT</td></tr>
+          <tr><td>Re-migrant / settler / returning student</td><td>Duty &amp; VAT exempt; excise on CIF: 5% ≤1,800cc · 10% to 2,000cc · 20% to 3,000cc · 30% above</td></tr>
+        </tbody>
+      </table>
+
+      <p class="disclaimer" style="margin-top: 1.5rem;">
+        Sources: <a href="https://gra.gov.gy/administration-of-budget-measures-2026/" rel="nofollow">GRA Administration of 2026 Budget Measures</a> (effective 16 Feb 2026) ·
+        <a href="https://www.gra.gov.gy/storage/2025/03/Excise-Tax-Regulations-revised-March-10-2025.pdf" rel="nofollow">Excise Tax Regulations (rev. 10 Mar 2025)</a> ·
+        <a href="https://gra.gov.gy/implementation-of-2023-budget-measures-for-motor-vehicles/" rel="nofollow">GRA 2023 Budget Measures</a> ·
+        <a href="https://www.gra.gov.gy/imports/motor-vehicle/" rel="nofollow">GRA Motor Vehicle Duty/Tax Guide</a>.
+        We re-verify after every national budget.
+      </p>
+      </div>
+
+      <div class="faq">
+        <h2 class="section-title">Frequently asked questions</h2>
+        {
+          faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your tax bill</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            <strong>Estimate only — not an official assessment.</strong> Actual assessments use the
+            GRA's own valuation of your vehicle (which can exceed your invoice) and its official
+            exchange rate. GRA's temporary freight-valuation relief (running to 31 Dec 2026) may
+            reduce the freight portion of the assessed CIF. Rates change with national budgets —
+            confirm with the <a href="https://www.gra.gov.gy/imports/motor-vehicle/" rel="nofollow">GRA</a>
+            or a licensed customs broker before purchasing or shipping.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/importing-vehicle-to-guyana/">Importing a vehicle to Guyana: the full process</a>
+            <a href="/articles/guyana-remigrant-scheme-guide/">The remigrant scheme: duty-free concessions explained</a>
+            <a href="/articles/guyana-tax-rules-remigrants/">Guyana tax rules for remigrants (and getting your TIN)</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script define:vars={{ PRESETS }}>
+    // Rates: GRA Excise Tax Regulations (rev. 2025-03-10) + Budget 2023 + Budget 2026
+    // (effective 2026-02-16). Under-4: duty on CIF, excise on (CIF+duty) [dealers: 1.5x],
+    // VAT 14% on the stack (exempt: <1500cc new, hybrids <=2000cc). 4+: consolidated excise.
+    // Double-cab <=2500cc: flat G$2M/G$3M any age, 0% duty/VAT. EVs: fully exempt.
+    const FLAT_GYD_SMALL_OLD = 800000;
+    const FLAT_GYD_DC_2000 = 2000000;
+    const FLAT_GYD_DC_2500 = 3000000;
+    const LOCAL_FEES_USD = 1100; // typical port handling + broker + registration
+    let lastSummary = '';
+    let listingUrl = '';
+
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const esc = (s) =>
+      String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+    function under4ExciseRate(cc, fuel, doubleCab) {
+      if (doubleCab) return cc <= 3000 ? 0.75 : 1.10; // >2500cc double cabs only reach here
+      if (cc <= 1500) return 0;
+      if (cc <= 2000) return 0.10;
+      if (cc <= 3000) return 1.10;
+      return fuel === 'diesel' ? 1.10 : 1.40;
+    }
+
+    function over4Excise(cif, cc, fuel, dealer) {
+      // Individual: (CIF + fixed) * rate + fixed. Dealer: (1.5*CIF + fixed) * rate + fixed.
+      const gasBands = dealer
+        ? [
+            { max: 1000, fixed: 4200, rate: 0.10 },
+            { max: 1500, fixed: 4300, rate: 0.10 },
+            { max: 1800, fixed: 6000, rate: 0.30 },
+            { max: 2000, fixed: 6500, rate: 0.30 },
+            { max: 3000, fixed: 13500, rate: 0.70 },
+            { max: Infinity, fixed: 14500, rate: 1.00 },
+          ]
+        : [
+            { max: 1800, fixed: 6000, rate: 0.30 },
+            { max: 2000, fixed: 6500, rate: 0.30 },
+            { max: 3000, fixed: 13500, rate: 0.70 },
+            { max: Infinity, fixed: 14500, rate: 1.00 },
+          ];
+      const dieselBands = dealer
+        ? [
+            { max: 1500, fixed: 6200, rate: 0.10 },
+            { max: 2000, fixed: 8200, rate: 0.30 },
+            { max: 2500, fixed: 15400, rate: 0.70 },
+            { max: 3000, fixed: 15500, rate: 0.70 },
+            { max: Infinity, fixed: 17200, rate: 1.00 },
+          ]
+        : [
+            { max: 2000, fixed: 8200, rate: 0.30 },
+            { max: 2500, fixed: 15400, rate: 0.70 },
+            { max: 3000, fixed: 15500, rate: 0.70 },
+            { max: Infinity, fixed: 17200, rate: 1.00 },
+          ];
+      const bands = fuel === 'diesel' ? dieselBands : gasBands;
+      const band = bands.find((b) => cc <= b.max);
+      const base = dealer ? 1.5 * cif : cif;
+      return (base + band.fixed) * band.rate + band.fixed;
+    }
+
+    function remigrantRate(cc) {
+      if (cc <= 1800) return 0.05;
+      if (cc <= 2000) return 0.10;
+      if (cc <= 3000) return 0.20;
+      return 0.30;
+    }
+
+    function getInputs() {
+      const price = parseFloat($('price').value) || 0;
+      const ship = parseFloat($('ship').value) || 0;
+      const insRaw = $('ins').value.trim();
+      const ins = insRaw === '' ? price * 0.025 : parseFloat(insRaw) || 0;
+      return {
+        price,
+        ship,
+        ins,
+        cif: price + ship + ins,
+        cc: parseFloat($('cc').value) || 0,
+        fuel: $('fuel').value,
+        over4: $('age').value === 'over',
+        doubleCab: $('vtype').value === 'doublecab',
+        importer: $('importer').value,
+        fx: parseFloat($('fx').value) || 208.5,
+      };
+    }
+
+    function calculate() {
+      const inp = getInputs();
+      const { price, ship, ins, cif, cc, fuel, over4, doubleCab, importer, fx } = inp;
+      const dealer = importer === 'dealer';
+      const lines = [];
+      const notes = [];
+      let total = 0;
+
+      if (cif <= 0) {
+        render(inp, lines, 0, ['Enter the vehicle price to calculate.']);
+        return;
+      }
+
+      if (importer === 'remigrant') {
+        const rate = remigrantRate(cc);
+        total = cif * rate;
+        lines.push({ label: `Concessional excise (${(rate * 100).toFixed(0)}% of CIF)`, usd: total });
+        lines.push({ label: 'Customs duty (exempt)', usd: 0 });
+        lines.push({ label: 'VAT (exempt)', usd: 0 });
+        notes.push(
+          'Re-migrant/settler/returning-student concession requires prior approval (typically 5+ years abroad for re-migrants), covers one vehicle imported within about 6 months of returning, and restricts selling it — see our remigrant scheme guide.'
+        );
+      } else if (fuel === 'electric') {
+        lines.push({ label: 'Duty, excise & VAT (fully electric: exempt — Budget 2023)', usd: 0 });
+        total = 0;
+      } else if (doubleCab && cc <= 2500) {
+        const flat = cc <= 2000 ? FLAT_GYD_DC_2000 : FLAT_GYD_DC_2500;
+        total = flat / fx;
+        lines.push({ label: `Flat tax (double-cab ${cc <= 2000 ? '≤2,000cc' : '2,001–2,500cc'}): G$${fmt(flat)}`, usd: total });
+        lines.push({ label: 'Customs duty (flat-tax category: none)', usd: 0 });
+        lines.push({ label: 'VAT (flat-tax category: none)', usd: 0 });
+        notes.push('Budget 2026 flat tax — applies at any age; hybrid double-cabs in this cc range pay the same flat amount.');
+      } else if (fuel === 'hybrid' && !over4 && cc <= 2000) {
+        const dutyRate = cc < 1500 ? 0.35 : 0.45;
+        const duty = cif * dutyRate;
+        lines.push({ label: `Customs duty (${(dutyRate * 100).toFixed(0)}% of CIF)`, usd: duty });
+        lines.push({ label: 'Excise tax (hybrid ≤2000cc: exempt)', usd: 0 });
+        lines.push({ label: 'VAT (hybrid ≤2000cc: exempt — Budget 2026)', usd: 0 });
+        total = duty;
+      } else if (over4) {
+        const effFuel = fuel === 'hybrid' ? 'gasoline' : fuel;
+        if (cc <= 1500 && !dealer) {
+          total = FLAT_GYD_SMALL_OLD / fx;
+          lines.push({ label: `Flat excise (≤1,500cc, 4+ years): G$${fmt(FLAT_GYD_SMALL_OLD)}`, usd: total });
+        } else {
+          total = over4Excise(cif, cc, effFuel, dealer);
+          lines.push({
+            label: dealer
+              ? 'Excise tax (dealer formula: (1.5×CIF + fixed) × rate + fixed)'
+              : 'Excise tax (GRA formula: (CIF + fixed) × rate + fixed)',
+            usd: total,
+          });
+        }
+        lines.push({ label: 'Customs duty (4+ years: none)', usd: 0 });
+        lines.push({ label: 'VAT (4+ years: none)', usd: 0 });
+        if (fuel === 'hybrid') notes.push('Hybrids over 4 years old lose the exemptions and are taxed as gasoline vehicles.');
+      } else {
+        const effFuel = fuel === 'hybrid' ? 'gasoline' : fuel;
+        const dutyRate = cc < 1500 ? 0.35 : 0.45;
+        const duty = cif * dutyRate;
+        const exciseRate = under4ExciseRate(cc, effFuel, doubleCab);
+        const base = (cif + duty) * (dealer ? 1.5 : 1);
+        const excise = exciseRate * base;
+        const vatExempt = cc < 1500;
+        const vat = vatExempt ? 0 : 0.14 * (cif + duty + excise);
+        lines.push({ label: `Customs duty (${(dutyRate * 100).toFixed(0)}% of CIF)`, usd: duty });
+        lines.push({
+          label: `Excise tax (${(exciseRate * 100).toFixed(0)}% of ${dealer ? '1.5× ' : ''}(CIF + duty))`,
+          usd: excise,
+        });
+        lines.push({
+          label: vatExempt ? 'VAT (under 1,500cc & under 4 years: exempt — Budget 2026)' : 'VAT (14% of CIF + duty + excise)',
+          usd: vat,
+        });
+        total = duty + excise + vat;
+        if (fuel === 'hybrid') notes.push('Hybrids over 2000cc are taxed as gasoline vehicles.');
+      }
+
+      render(inp, lines, total, notes);
+      updateShare(inp, total);
+    }
+
+    function render(inp, lines, total, notes) {
+      const { price, ship, ins, cif, fx } = inp;
+      const rows = lines
+        .map((l) => `<tr><td>${l.label}</td><td class="vr-gyd">G$${fmt(l.usd * fx)}</td><td class="vr-usd">US$${fmt(l.usd)}</td></tr>`)
+        .join('');
+      const pct = cif > 0 ? Math.round((total / cif) * 100) : 0;
+      const landed = cif + total + LOCAL_FEES_USD;
+      const html = `
+        <div class="vr-stat">
+          <span class="vr-label">Total taxes</span>
+          <span class="vr-value">G$${fmt(total * fx)}</span>
+          <span class="vr-sub">US$${fmt(total)} — ${pct}% of the CIF value</span>
+        </div>
+        <div class="vr-stat">
+          <span class="vr-label">Total landed estimate</span>
+          <span class="vr-value">G$${fmt(landed * fx)}</span>
+          <span class="vr-sub">US$${fmt(landed)} — includes ~US$${fmt(LOCAL_FEES_USD)} typical local fees (port handling, broker, registration)</span>
+        </div>
+        <div class="vr-stat vr-stat-minor">
+          <span class="vr-label">CIF value — what the taxes are charged on</span>
+          <span class="vr-value vr-value-sm">US$${fmt(cif)}</span>
+          <span class="vr-sub">US$${fmt(price)} price + US$${fmt(ship)} shipping + US$${fmt(ins)} insurance</span>
+        </div>
+        <table class="vr-table">
+          <thead><tr><th>Charge</th><th class="vr-gyd">GYD</th><th class="vr-usd">USD</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${notes.map((n) => `<p class="vr-note">${n}</p>`).join('')}
+      `;
+      $('result-box').innerHTML = html;
+      if ($('listing-result').style.display === 'block') {
+        $('listing-charges-body').innerHTML = html;
+        $('listing-charges').style.display = 'block';
+      }
+    }
+
+    function updateShare(inp, total) {
+      const { price, ship, cif, cc, fuel, over4, doubleCab, importer, fx } = inp;
+      const params = new URLSearchParams({
+        price: String(price),
+        ship: String(ship),
+        ins: $('ins').value.trim(),
+        cc: String(cc),
+        fuel,
+        age: over4 ? 'over' : 'under',
+        vtype: doubleCab ? 'doublecab' : 'car',
+        imp: importer,
+      });
+      const shareUrl = `${location.origin}${location.pathname}?${params}`;
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Guyana import taxes on a ${fmt(cc)}cc ${fuel}${doubleCab ? ' double-cab' : ''} (${over4 ? '4+ years old' : 'under 4 years'})` +
+        `${importer === 'remigrant' ? ', remigrant rates' : importer === 'dealer' ? ', dealer rates' : ''}: US$${fmt(total)} (≈ G$${fmt(total * fx)}) on CIF US$${fmt(cif)}. ` +
+        `Calculate yours: ${shareUrl}`;
+      $('share-wa').href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    // --- Listing link fetch ---
+    function showDetectedCard(data) {
+      const missing = (hint) => `<span style="color: var(--red);">Not detected — ${hint}</span>`;
+      let priceCell;
+      if (data.price) {
+        priceCell = `<strong>US$${fmt(data.price)}</strong>`;
+        if (data.currency && data.currency !== 'USD') {
+          priceCell += ` <span style="color: var(--red);">⚠ appears to be ${esc(data.currency)} — convert to USD</span>`;
+        }
+      } else {
+        priceCell = missing('enter the vehicle price below');
+      }
+      let ageCell;
+      if (data.year) {
+        const over = new Date().getFullYear() - data.year >= 4;
+        ageCell = `<strong>${data.year}</strong> — counted as ${over ? '4+ years old' : 'under 4 years'}`;
+      } else {
+        ageCell = missing('set the age below');
+      }
+      const rows = [
+        ['Vehicle', data.title ? `<strong>${esc(data.title)}</strong>` : missing('check the link')],
+        ['Price', priceCell],
+        ['Engine', data.cc ? `<strong>${fmt(data.cc)}cc</strong>` : missing('enter the engine size below')],
+        ['Year', ageCell],
+        ['Fuel', data.fuel ? `<strong>${esc(data.fuel)}</strong>` : missing('select the fuel type below')],
+      ];
+      if (data.mileageKm) rows.push(['Mileage', `${fmt(data.mileageKm)} km`]);
+      if (data.transmission) rows.push(['Transmission', esc(data.transmission)]);
+      if (data.doors || data.seats) {
+        rows.push(['Body', [data.doors && `${data.doors} doors`, data.seats && `${data.seats} seats`].filter(Boolean).join(', ')]);
+      }
+      rows.push(['Source', esc(data.host)]);
+      const rowsHtml = rows
+        .map(([k, v]) => `<tr><td style="white-space:nowrap; font-weight:600;">${k}</td><td>${v}</td></tr>`)
+        .join('');
+
+      const photos =
+        Array.isArray(data.images) && data.images.length
+          ? `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:4px; margin-bottom:0.75rem;">` +
+            data.images
+              .slice(0, 8)
+              .map(
+                (src, i) =>
+                  `<img src="${esc(src)}" alt="Vehicle photo ${i + 1}" referrerpolicy="no-referrer" onerror="this.remove()" style="width:100%; height:72px; object-fit:cover; border-radius:6px; ${i === 0 ? 'grid-column: span 2; height:150px;' : ''}" />`
+              )
+              .join('') +
+            `</div>`
+          : '';
+
+      const detailsHtml = data.details
+        ? `<p style="margin:0 0 0.5rem; font-size:0.92rem;">${esc(data.details)}</p>`
+        : '';
+
+      const backLink = listingUrl
+        ? `<p style="margin:0.75rem 0 0;"><a class="btn secondary" href="${esc(listingUrl)}" target="_blank" rel="noopener nofollow" style="font-size:0.9rem; padding:0.5rem 1rem;">View full listing on ${esc(data.host)} →</a></p>`
+        : '';
+
+      const freightNote = data.price
+        ? `<p class="disclaimer" style="border-top:none; margin:0.5rem 0 0; padding-top:0;">Listing prices are often FOB (before shipping). We've pre-filled a typical RoRo freight — replace it with your shipper's actual quote in the calculator below.</p>`
+        : '';
+      const box = $('listing-result');
+      box.innerHTML = `${photos}${detailsHtml}<table class="fee-table" style="margin-top:0;"><tbody>${rowsHtml}</tbody></table>${backLink}${freightNote}`;
+      box.style.display = 'block';
+    }
+
+    async function fetchListing() {
+      const url = $('listing-url').value.trim();
+      const status = $('listing-status');
+      const resultBox = $('listing-result');
+      status.style.display = 'block';
+      resultBox.style.display = 'none';
+      $('listing-charges').style.display = 'none';
+      if (!url) {
+        status.textContent = 'Paste a listing link first.';
+        return;
+      }
+      const btn = $('fetch-listing');
+      btn.disabled = true;
+      status.textContent = 'Reading listing…';
+      try {
+        const res = await fetch(`/api/fetch-listing?url=${encodeURIComponent(url)}`);
+        if (res.status === 404) {
+          status.textContent = 'The link reader isn’t available in this preview — it activates on the live site. Enter the details manually for now.';
+          return;
+        }
+        const data = await res.json();
+        if (!data.ok) {
+          status.textContent = data.error || 'Could not read that listing — enter the details manually.';
+          return;
+        }
+        if (data.price) $('price').value = String(Math.round(data.price));
+        if (data.cc) $('cc').value = String(data.cc);
+        if (data.fuel) $('fuel').value = data.fuel;
+        if (data.year) {
+          $('age').value = new Date().getFullYear() - data.year >= 4 ? 'over' : 'under';
+        }
+        if (data.sold) {
+          status.textContent = data.price
+            ? '⚠ This listing is marked SOLD — the price shown may be stale. Use it as a guide or pick a live listing.'
+            : '⚠ This listing is marked SOLD, so the site no longer shows its price — the other details were filled in. Enter the price of a similar live listing.';
+        } else if (!data.price) {
+          status.textContent = '✓ Listing read, but this site doesn’t show a price to automated readers — enter the price manually; the other details were filled in.';
+        } else {
+          status.textContent = '✓ Listing read — details were filled into the calculator. Check anything marked red, then see your tax bill underneath.';
+        }
+        listingUrl = url;
+        showDetectedCard(data);
+        calculate();
+      } catch {
+        status.textContent = 'Could not read that listing — enter the details manually.';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // --- Wiring ---
+    $('fetch-listing').addEventListener('click', fetchListing);
+
+    $('preset').addEventListener('input', () => {
+      const p = PRESETS[parseInt($('preset').value, 10)];
+      if (!p) return;
+      $('cc').value = String(p.cc);
+      $('fuel').value = p.fuel;
+      $('vtype').value = p.vtype;
+      calculate();
+    });
+
+    $('share-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = $('share-copy');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['price', 'ship', 'ins', 'cc', 'fuel', 'age', 'vtype', 'importer', 'fx'].forEach((id) =>
+      $(id).addEventListener('input', calculate)
+    );
+
+    // Prefill from shared URL params (legacy ?cif= maps to price)
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('price')) $('price').value = qp.get('price');
+    else if (qp.has('cif')) {
+      $('price').value = qp.get('cif');
+      $('ship').value = '0';
+      $('ins').value = '0';
+    }
+    if (qp.has('ship')) $('ship').value = qp.get('ship');
+    if (qp.has('ins')) $('ins').value = qp.get('ins');
+    if (qp.has('cc')) $('cc').value = qp.get('cc');
+    if (qp.has('fuel') && ['gasoline', 'diesel', 'hybrid', 'electric'].includes(qp.get('fuel'))) $('fuel').value = qp.get('fuel');
+    if (qp.has('age') && ['over', 'under'].includes(qp.get('age'))) $('age').value = qp.get('age');
+    if (qp.has('vtype') && ['car', 'doublecab'].includes(qp.get('vtype'))) $('vtype').value = qp.get('vtype');
+    if (qp.has('imp') && ['private', 'dealer', 'remigrant'].includes(qp.get('imp'))) $('importer').value = qp.get('imp');
+    else if (qp.get('rem') === '1') $('importer').value = 'remigrant';
+
+    calculate();
+
+    // Live exchange rate, same pattern as the converter pages
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then((res) => res.json())
+      .then((data) => {
+        const liveRate = data?.rates?.GYD;
+        if (data?.result !== 'success' || !liveRate) return;
+        $('fx').value = liveRate.toFixed(2);
+        calculate();
+      })
+      .catch(() => {});
+  </script>
+</BaseLayout>

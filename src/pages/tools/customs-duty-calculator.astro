@@ -1,0 +1,239 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CURRENCIES } from '../../lib/currencies';
+
+// Duty/VAT by category, from Guyanese courier customs-clearance tables (rates
+// consistent with the CARICOM CET as applied by GRA). Estimates — exact rates
+// depend on HS classification at assessment.
+const CATEGORIES = [
+  { label: 'Laptop / tablet', duty: 0, vat: 0 },
+  { label: 'Computer system / parts', duty: 0, vat: 14 },
+  { label: 'Computer monitor', duty: 0, vat: 0 },
+  { label: 'Cellphone', duty: 0, vat: 14 },
+  { label: 'Earbuds / headphones', duty: 0, vat: 0 },
+  { label: 'Security camera / system', duty: 0, vat: 0 },
+  { label: 'LED lighting', duty: 0, vat: 0 },
+  { label: 'Books', duty: 0, vat: 0 },
+  { label: 'Printer', duty: 5, vat: 0 },
+  { label: 'Hand tools', duty: 5, vat: 14 },
+  { label: 'Musical equipment', duty: 10, vat: 14 },
+  { label: 'Plumbing fixtures', duty: 15, vat: 14 },
+  { label: 'Clothing', duty: 20, vat: 14 },
+  { label: 'Shoes', duty: 20, vat: 14 },
+  { label: 'Appliances (fridge, washer, microwave…)', duty: 20, vat: 14 },
+  { label: 'Furniture', duty: 20, vat: 14 },
+  { label: 'TV', duty: 20, vat: 14 },
+  { label: 'General electronics & accessories', duty: 20, vat: 14 },
+  { label: 'Speakers / audio', duty: 20, vat: 14 },
+  { label: 'Cosmetics', duty: 20, vat: 14 },
+  { label: 'Toys', duty: 20, vat: 14 },
+  { label: 'Video games & consoles', duty: 20, vat: 14 },
+  { label: 'Watches', duty: 20, vat: 14 },
+  { label: 'Vitamins & supplements', duty: 20, vat: 14 },
+  { label: 'Digital camera', duty: 25, vat: 14 },
+  { label: 'Car parts', duty: 30, vat: 14 },
+  { label: 'DVDs / media', duty: 30, vat: 14 },
+  { label: 'Jewellery (fine)', duty: 50, vat: 14 },
+  { label: 'Costume jewellery', duty: 60, vat: 14 },
+];
+
+const faqs = [
+  {
+    q: 'How much is customs duty in Guyana?',
+    a: 'It varies by item: computers, laptops, phones, and books are duty-free; most consumer goods (clothing, furniture, appliances, TVs) carry 20% duty; car parts 30%; jewellery 50% or more. VAT of 14% is then charged on the value plus duty for most items — though several electronics categories are VAT-free too.',
+  },
+  {
+    q: 'Are laptops and phones duty-free in Guyana?',
+    a: 'Yes — computers, laptops, tablets, and cellphones carry 0% customs duty. Laptops and tablets are also VAT-free, while phones and computer parts attract the 14% VAT on import.',
+  },
+  {
+    q: 'How is import duty calculated on a package to Guyana?',
+    a: "On the CIF value — the item's cost plus shipping and insurance to Guyana. Duty is a percentage of CIF, then VAT (where applicable) is 14% of CIF plus duty. Courier and handling fees from your shipper are separate.",
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guyana Customs Duty Calculator — Duty & VAT on Packages by Item"
+  description="Estimate customs duty and VAT on items shipped to Guyana — electronics, clothing, appliances, furniture, car parts, and more, with real category rates and the duty-free items listed."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Customs Duty Calculator</h1>
+      <p>
+        Shipping a package or bringing items home? Estimate the duty and VAT by item category —
+        and see what's duty-free before you buy.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Pick the item category</li>
+        <li><span class="step-num">2</span> Enter the item cost and shipping</li>
+        <li><span class="step-num">3</span> See the duty, VAT, and landed cost</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">✓ Category rates from Guyanese customs-clearance tables (CET-based) · verified July 2026</p>
+
+            <label for="category">Item category</label>
+        <select id="category">
+          {CATEGORIES.map((c, i) => <option value={i} selected={c.label === 'Clothing'}>{c.label} — {c.duty}% duty{c.vat ? ` + ${c.vat}% VAT` : ', no VAT'}</option>)}
+        </select>
+
+        <label for="cost">Item cost (US$)</label>
+        <input type="number" id="cost" value="200" min="0" step="5" />
+
+        <label for="freight">Shipping to Guyana (US$)</label>
+        <input type="number" id="freight" value="40" min="0" step="5" />
+
+        <label for="fx">Exchange rate (GYD per US$)</label>
+        <input type="number" id="fx" value={CURRENCIES.usd.rate} min="1" step="0.1" />
+
+          </div>
+
+          <div>
+            <h2 class="section-title">Duty-free highlights</h2>
+            <p style="font-size: 0.95rem;">
+              <strong>0% duty:</strong> laptops, tablets, computers and parts, monitors, cellphones,
+              earbuds, security cameras, LED lighting, books — with laptops, tablets, monitors, earbuds,
+              security cameras, LED lighting, and books also <strong>VAT-free</strong>. Tech and books are
+              the cheapest things to send home.
+            </p>
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Duty &amp; VAT</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Estimate only — the GRA classifies items by HS code at assessment, and rates within a
+            category can vary by exact item. Courier handling and brokerage fees are additional.
+            Commercial quantities are treated differently from personal shipments. For vehicles, use
+            the <a href="/tools/vehicle-import-calculator/">vehicle import calculator</a>; for barrels of mixed
+            personal items, see the <a href="/tools/barrel-shipping-calculator/">barrel calculator</a>.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/tools/barrel-shipping-calculator/">Barrel Shipping Cost Calculator</a>
+            <a href="/articles/shipping-barrel-to-guyana-cost/">Shipping a barrel to Guyana: what it really costs</a>
+            <a href="/tools/vehicle-import-calculator/">Vehicle Import Duty Calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script define:vars={{ CATEGORIES }}>
+    const $ = (id) => document.getElementById(id);
+    const fmtUs = (n) => 'US$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    const fmtG = (n) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function calculate() {
+      const cat = CATEGORIES[parseInt($('category').value, 10)] || CATEGORIES[0];
+      const cost = parseFloat($('cost').value) || 0;
+      const freight = parseFloat($('freight').value) || 0;
+      const fx = parseFloat($('fx').value) || 208.5;
+      const box = $('result-box');
+
+      const cif = cost + freight;
+      if (cif <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter the item cost to calculate.</div>';
+        return;
+      }
+      const duty = (cat.duty / 100) * cif;
+      const vat = (cat.vat / 100) * (cif + duty);
+      const total = duty + vat;
+      const landed = cif + total;
+
+      box.innerHTML = `
+        <div class="tool-result">
+          Taxes: <strong>${fmtG(total * fx)}</strong> (≈ ${fmtUs(total)})
+          <table style="margin-top:0.6rem;">
+            <tbody>
+              <tr><td>CIF (cost + shipping)</td><td>${fmtUs(cif)}<br/>${fmtG(cif * fx)}</td></tr>
+              <tr><td>Customs duty (${cat.duty}%)</td><td>${fmtUs(duty)}<br/>${fmtG(duty * fx)}</td></tr>
+              <tr><td>VAT ${cat.vat ? `(${cat.vat}% of CIF + duty)` : '(n/a)'}</td><td>${fmtUs(vat)}<br/>${fmtG(vat * fx)}</td></tr>
+            </tbody>
+          </table>
+          <span style="font-size:0.88rem;display:block;margin-top:0.5rem;">Landed cost ≈ <strong style="font-size:1rem;">${fmtG(landed * fx)}</strong> (≈ ${fmtUs(landed)}) before courier/handling fees${total === 0 ? ' — this category is completely tax-free 🎉' : ''}</span>
+        </div>
+      `;
+
+      const params = new URLSearchParams({ cat: $('category').value, cost: String(cost), freight: String(freight) });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Guyana customs on ${cat.label} (${fmtUs(cif)} CIF): ${fmtUs(total)} in duty+VAT. ` +
+        `Check any item: ${location.origin}${location.pathname}?${params}`;
+      $('share-wa').href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    $('share-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = $('share-copy');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['category', 'cost', 'freight', 'fx'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('cat')) $('category').value = qp.get('cat');
+    if (qp.has('cost')) $('cost').value = qp.get('cost');
+    if (qp.has('freight')) $('freight').value = qp.get('freight');
+    calculate();
+
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then((res) => res.json())
+      .then((data) => {
+        const liveRate = data?.rates?.GYD;
+        if (data?.result !== 'success' || !liveRate) return;
+        $('fx').value = liveRate.toFixed(2);
+        calculate();
+      })
+      .catch(() => {});
+  </script>
+</BaseLayout>

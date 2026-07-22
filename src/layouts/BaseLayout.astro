@@ -1,6 +1,8 @@
 ---
+import '@fontsource-variable/inter';
 import '../styles/global.css';
 import { CATEGORIES } from '../lib/categories';
+import { TOOL_GROUPS } from '../lib/tools';
 
 interface Props {
   title: string;
@@ -38,6 +40,7 @@ const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-im
   <body>
     <header class="site-header">
       <div class="flag-bar"></div>
+      <div class="read-progress" aria-hidden="true"></div>
       <div class="header-inner">
         <a class="site-logo" href="/">Guyana <span>Diaspora</span> Guide</a>
         <nav class="site-nav" aria-label="Main navigation">
@@ -48,7 +51,34 @@ const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-im
               </a>
             ))
           }
-          <a href="/tools/" aria-current={currentPath === '/tools/' ? 'page' : undefined}>Tools</a>
+          <div class="nav-dropdown">
+            <a
+              href="/tools/"
+              class="nav-dropdown-trigger"
+              aria-current={currentPath.startsWith('/tools/') ? 'page' : undefined}
+              aria-haspopup="true"
+            >
+              Tools
+              <svg class="nav-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M1 3.5 5 7.5 9 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+            <div class="nav-dropdown-menu" role="menu">
+              {
+                TOOL_GROUPS.map(({ group, tools }) => (
+                  <div class="nav-dropdown-group">
+                    <span class="nav-dropdown-label">{group}</span>
+                    {tools.map((tool) => (
+                      <a href={tool.href} role="menuitem" aria-current={currentPath === tool.href ? 'page' : undefined}>
+                        {tool.name}
+                      </a>
+                    ))}
+                  </div>
+                ))
+              }
+              <a class="nav-dropdown-all" href="/tools/" role="menuitem">All tools →</a>
+            </div>
+          </div>
         </nav>
       </div>
     </header>
@@ -76,5 +106,76 @@ const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-im
         </p>
       </div>
     </footer>
+
+    <script>
+      // Subtle scroll-reveal on cards, panels, and tables; respects reduced motion.
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduced && 'IntersectionObserver' in window) {
+        const targets = document.querySelectorAll(
+          '.card, .tool-panel, .tool-card, .tool-aside > *, .faq details, .prose .fee-table, .section .fee-table, .prose > h2'
+        );
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                (entry.target as HTMLElement).classList.add('in');
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.08, rootMargin: '0px 0px -5% 0px' }
+        );
+        targets.forEach((el, i) => {
+          el.classList.add('reveal');
+          (el as HTMLElement).style.transitionDelay = `${Math.min((i % 6) * 55, 275)}ms`;
+          io.observe(el);
+        });
+        // Fail-safe: never leave content hidden if observers don't fire
+        // (old browsers, throttled webviews, reader modes).
+        setTimeout(() => {
+          document.querySelectorAll('.reveal:not(.in)').forEach((el) => el.classList.add('in'));
+        }, 1800);
+      }
+
+      // Pulse the result card whenever a tool writes a new result into it.
+      if (!reduced) {
+        document.querySelectorAll('.result-card').forEach((card) => {
+          let queued = false;
+          new MutationObserver(() => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(() => {
+              card.classList.remove('result-pulse');
+              // Force a reflow so re-adding the class restarts the animation.
+              void (card as HTMLElement).offsetWidth;
+              card.classList.add('result-pulse');
+              queued = false;
+            });
+          }).observe(card, { childList: true, characterData: true, subtree: true });
+        });
+      }
+
+      // Reading progress bar under the sticky header.
+      const progress = document.querySelector('.read-progress') as HTMLElement | null;
+      if (progress) {
+        let ticking = false;
+        const update = () => {
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          progress.style.transform = `scaleX(${max > 60 ? Math.min(window.scrollY / max, 1) : 0})`;
+          ticking = false;
+        };
+        window.addEventListener(
+          'scroll',
+          () => {
+            if (!ticking) {
+              ticking = true;
+              requestAnimationFrame(update);
+            }
+          },
+          { passive: true }
+        );
+        update();
+      }
+    </script>
   </body>
 </html>

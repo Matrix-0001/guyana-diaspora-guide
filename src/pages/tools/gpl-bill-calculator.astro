@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const APPLIANCES = [
+  { label: 'Refrigerator (modern, medium)', kwh: 45 },
+  { label: 'Chest freezer', kwh: 55 },
+  { label: 'Air conditioner, inverter 12,000 BTU (6 hrs/night)', kwh: 160 },
+  { label: 'Air conditioner, older unit 12,000 BTU (6 hrs/night)', kwh: 230 },
+  { label: 'Standing / ceiling fan (8 hrs/day)', kwh: 18 },
+  { label: 'LED lights, whole house', kwh: 12 },
+  { label: 'TV (4 hrs/day)', kwh: 12 },
+  { label: 'Washing machine (4 loads/week)', kwh: 10 },
+  { label: 'Electric iron (weekly pressing)', kwh: 8 },
+  { label: 'Water pump', kwh: 10 },
+  { label: 'Microwave / small appliances', kwh: 10 },
+  { label: 'Desktop computer (4 hrs/day)', kwh: 20 },
+];
+
+const faqs = [
+  {
+    q: 'How is a GPL bill calculated?',
+    a: 'Your monthly consumption in kWh times the rate for your customer category, plus a fixed monthly charge. Residential customers using 75 kWh or less fall under the lifeline rate (G$39.10/kWh + G$341.54 fixed); above 75 kWh the standard residential rate applies (G$43.43/kWh + G$351.04 fixed).',
+  },
+  {
+    q: 'What is the GPL lifeline rate?',
+    a: 'A subsidized rate for low-consumption residential customers — G$39.10 per kWh with a G$341.54 fixed charge, for households using up to 75 kWh a month. Cross the 75 kWh line and the standard rate applies to your consumption instead.',
+  },
+  {
+    q: 'Why is my GPL bill so high?',
+    a: "Cooling is almost always the answer — air conditioning and older refrigerators/freezers dominate Guyanese bills. An older 12,000 BTU AC run nightly can add 200+ kWh (G$9,000+) a month by itself; inverter units cut that sharply. Use the appliance table in this calculator to see what each device costs you.",
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="GPL Electricity Bill Calculator Guyana — Estimate Your Monthly Bill"
+  description="Estimate your GPL bill — lifeline and standard residential rates per kWh, fixed charges, and a typical-appliance builder showing what your fridge, AC, and fans each cost per month."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>GPL Electricity Bill Estimator</h1>
+      <p>
+        Estimate your monthly GPL bill from your kWh — or build it up from your appliances and see
+        which ones are really burning the money.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter your monthly kWh from your bill</li>
+        <li><span class="step-num">2</span> No bill handy? Tick your appliances instead</li>
+        <li><span class="step-num">3</span> See your estimated bill and rate category</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">
+              ✓ GPL published tariffs: lifeline G$39.10/kWh (≤75 kWh) · standard G$43.43/kWh · verified July 2026
+            </p>
+
+            <label for="kwh">Monthly consumption (kWh) — from your bill, or use the appliance builder below</label>
+            <input type="number" id="kwh" value="150" min="0" step="5" />
+
+            <label style="margin-top: 1.5rem;">Or estimate from typical appliances (ticks add to the kWh above)</label>
+        <div id="appliances">
+          {
+            APPLIANCES.map((a, i) => (
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; font-size: 0.95rem; margin: 0.3rem 0;">
+                <input type="checkbox" class="appliance" data-kwh={a.kwh} style="width: auto;" />
+                {a.label} <span style="color: var(--ink-soft);">(~{a.kwh} kWh/mo)</span>
+              </label>
+            ))
+          }
+        </div>
+            <button class="btn secondary" id="apply-appliances" type="button" style="margin-top: 0.75rem; border-width: 2px; cursor: pointer;">
+              Use appliance total
+            </button>
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your GPL bill</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Rates per GPL's published tariff schedule (residential categories; government-account
+            rates differ slightly). Appliance figures are typical estimates — actual consumption
+            varies with usage and equipment age. Source:
+            <a href="https://gplinc.com/bill/rates-and-tariffs/" rel="nofollow">GPL Rates and Tariffs</a>;
+            we re-verify after tariff reviews.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/tools/salary-calculator/">Salary &amp; Tax Calculator</a>
+            <a href="/articles/building-house-guyana-from-abroad/">Building a house in Guyana from abroad</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    // GPL residential tariffs (published schedule): lifeline <=75 kWh: G$39.10/kWh + G$341.54;
+    // standard >75 kWh: G$43.43/kWh + G$351.04 fixed.
+    const LIFELINE_RATE = 39.10;
+    const LIFELINE_FIXED = 341.54;
+    const STANDARD_RATE = 43.43;
+    const STANDARD_FIXED = 351.04;
+    const LIFELINE_LIMIT = 75;
+
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function calculate() {
+      const kwh = parseFloat($('kwh').value) || 0;
+      const lifeline = kwh <= LIFELINE_LIMIT;
+      const rate = lifeline ? LIFELINE_RATE : STANDARD_RATE;
+      const fixed = lifeline ? LIFELINE_FIXED : STANDARD_FIXED;
+      const energy = kwh * rate;
+      const bill = energy + fixed;
+
+      document.getElementById('result-box')!.innerHTML = `
+        <div class="tool-result">
+          Estimated monthly bill: <strong>${fmt(bill)}</strong> (${fmt(bill * 12)}/year)
+          <table style="margin-top:0.6rem;">
+            <tbody>
+              <tr><td>Category</td><td>${lifeline ? 'Lifeline (≤75 kWh)' : 'Residential standard'}</td></tr>
+              <tr><td>Energy (${kwh} kWh × G$${rate.toFixed(2)})</td><td>${fmt(energy)}</td></tr>
+              <tr><td>Fixed charge</td><td>${fmt(fixed)}</td></tr>
+            </tbody>
+          </table>
+          ${!lifeline && kwh <= 90 ? `<span style="font-size:0.85rem;display:block;margin-top:0.5rem;">You're just above the 75 kWh lifeline line — trimming ${kwh - 75} kWh would drop you to the cheaper rate.</span>` : ''}
+        </div>
+      `;
+
+      const params = new URLSearchParams({ kwh: String(kwh) });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary = `Estimated GPL bill for ${kwh} kWh/month: ${fmt(bill)}. Estimate yours: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    document.getElementById('apply-appliances')!.addEventListener('click', () => {
+      const total = [...document.querySelectorAll<HTMLInputElement>('.appliance:checked')].reduce(
+        (sum, el) => sum + (parseFloat(el.dataset.kwh || '0') || 0),
+        0
+      );
+      $('kwh').value = String(total);
+      calculate();
+    });
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    $('kwh').addEventListener('input', calculate);
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('kwh')) $('kwh').value = qp.get('kwh')!;
+    calculate();
+  </script>
+</BaseLayout>

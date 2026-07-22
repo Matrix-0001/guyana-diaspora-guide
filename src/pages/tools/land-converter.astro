@@ -1,0 +1,171 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const faqs = [
+  {
+    q: 'How big is a perch of land in Guyana?',
+    a: 'A perch (square rod) is 272.25 square feet — about a 16.5 × 16.5 ft square. Forty perches make a rood (10,890 sq ft) and four roods make an acre (43,560 sq ft). Guyanese transports and titles still commonly describe land in these units.',
+  },
+  {
+    q: 'How many square feet is a house lot in Guyana?',
+    a: "There's no single standard, but common residential lots run around 50 × 100 ft (5,000 sq ft) in older schemes, with housing-scheme lots varying from roughly 40 × 80 ft up to double lots. Always use the measurements on the transport, title, or survey plan — not the informal description.",
+  },
+  {
+    q: 'How many acres is a hectare?',
+    a: 'One hectare is about 2.47 acres (107,639 square feet). Larger agricultural parcels and leases in Guyana are often quoted in hectares while older documents use acres, roods, and perches — this converter translates between all of them.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guyana Land Measurement Converter — Perches, Roods, Acres & Hectares"
+  description="Convert Guyana land units instantly — perches, roods, acres, square feet, square metres, and hectares. The units on old transports and titles, translated for modern buyers."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Land Measurement Converter</h1>
+      <p>
+        Transports and titles talk in perches, roods, and acres — surveyors and listings talk in
+        square feet and hectares. Convert between all of them instantly.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter the amount from the transport or listing</li>
+        <li><span class="step-num">2</span> Pick the unit it's written in</li>
+        <li><span class="step-num">3</span> Read it in every other unit</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">✓ Exact imperial definitions: 1 perch = 272.25 sq ft · 1 rood = 40 perches · 1 acre = 4 roods</p>
+
+            <label for="value">Amount</label>
+            <input type="number" id="value" value="1" min="0" step="any" />
+
+            <label for="unit">Unit</label>
+            <select id="unit">
+              <option value="perch">Perches</option>
+              <option value="rood">Roods</option>
+              <option value="acre" selected>Acres</option>
+              <option value="sqft">Square feet</option>
+              <option value="sqm">Square metres</option>
+              <option value="hectare">Hectares</option>
+            </select>
+          </div>
+
+          <div>
+            <h2 class="section-title">Quick reference</h2>
+            <table class="fee-table">
+              <thead><tr><th>Unit</th><th>Square feet</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>1 perch (square rod)</td><td>272.25</td><td>≈ 16.5 × 16.5 ft</td></tr>
+                <tr><td>1 rood</td><td>10,890</td><td>40 perches</td></tr>
+                <tr><td>1 acre</td><td>43,560</td><td>4 roods = 160 perches</td></tr>
+                <tr><td>1 hectare</td><td>107,639</td><td>≈ 2.47 acres</td></tr>
+                <tr><td>Typical 50 × 100 ft house lot</td><td>5,000</td><td>≈ 18.4 perches</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Converted</span>
+            <div id="result-box"></div>
+          </div>
+          <div class="aside-note">
+            Conversions use exact imperial definitions. For any transaction, rely on the surveyed
+            measurements on the transport, certificate of title, or a sworn land surveyor's plan —
+            <a href="/articles/buying-land-in-guyana-from-abroad/">boundary surprises are a classic Guyana land problem</a>.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/buying-land-in-guyana-from-abroad/">Buying land in Guyana from abroad</a>
+            <a href="/articles/building-house-guyana-from-abroad/">Building a house in Guyana from abroad</a>
+            <a href="/tools/mortgage-calculator/">Mortgage &amp; Loan Calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    // Exact imperial definitions, square feet as base unit.
+    const TO_SQFT: Record<string, number> = {
+      perch: 272.25,
+      rood: 10890,
+      acre: 43560,
+      sqft: 1,
+      sqm: 10.763910417,
+      hectare: 107639.10417,
+    };
+    const LABELS: Record<string, string> = {
+      perch: 'perches',
+      rood: 'roods',
+      acre: 'acres',
+      sqft: 'square feet',
+      sqm: 'square metres',
+      hectare: 'hectares',
+    };
+
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+
+    function fmtNum(n: number): string {
+      if (n === 0) return '0';
+      if (n >= 100) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+      if (n >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      return n.toLocaleString('en-US', { maximumSignificantDigits: 3 });
+    }
+
+    function calculate() {
+      const value = parseFloat($('value').value) || 0;
+      const unit = $('unit').value;
+      const sqft = value * TO_SQFT[unit];
+      const rows = Object.keys(TO_SQFT)
+        .filter((u) => u !== unit)
+        .map((u) => `<tr><td>${LABELS[u]}</td><td style="text-align:right;"><strong>${fmtNum(sqft / TO_SQFT[u])}</strong></td></tr>`)
+        .join('');
+      document.getElementById('result-box')!.innerHTML = `
+        <div class="tool-result">${fmtNum(value)} ${LABELS[unit]} =
+        <table style="margin-top:0.6rem;"><tbody>${rows}</tbody></table></div>
+      `;
+    }
+
+    ['value', 'unit'].forEach((id) => $(id).addEventListener('input', calculate));
+    calculate();
+  </script>
+</BaseLayout>

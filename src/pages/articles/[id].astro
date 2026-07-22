@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ShareButtons from '../../components/ShareButtons.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
 import { CATEGORIES } from '../../lib/categories';
 
 export async function getStaticPaths() {
@@ -125,17 +126,7 @@ if (faqs.length > 0) {
     <div class="container">
       <h2 class="section-title">Keep reading</h2>
       <div class="card-grid">
-        {
-          related.map((a) => (
-            <article class="card">
-              <span class="kicker">{CATEGORIES[a.data.category]}</span>
-              <h3>
-                <a href={`/articles/${a.id}/`}>{a.data.title}</a>
-              </h3>
-              <p>{a.data.description}</p>
-            </article>
-          ))
-        }
+        {related.map((a) => <ArticleCard article={a} />)}
       </div>
     </div>
   </section>

@@ -56,4 +56,4 @@ Mobile money services in Guyana (such as GTT's MMG+) allow recipients to receive
 
 ## Try the calculator
 
-Use our [remittance fee calculator](/tools/) to compare the real cost of your next transfer side by side.
+Use our [remittance fee calculator](/tools/remittance-fee-calculator/) to compare the real cost of your next transfer side by side.

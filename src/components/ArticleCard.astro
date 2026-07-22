@@ -1,0 +1,47 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { CATEGORIES } from '../lib/categories';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+}
+
+const { article } = Astro.props;
+const category = article.data.category;
+
+// Photo art: GYD banknotes (money), Kaieteur Falls (immigration/travel),
+// GY passport at the airport (documents), housing-scheme homes (property)
+const ART: Record<string, string> = {
+  money: '/card-art/money-card.jpg',
+  immigration: '/card-art/immigration-card.jpg',
+  documents: '/card-art/documents-card.jpg',
+  property: '/card-art/property-card.jpg',
+};
+
+const ICONS: Record<string, string> = {
+  // 14px stroke icons, inherit currentColor
+  money:
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>',
+  immigration:
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+  documents:
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  property:
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 8.5V21h14V8.5"/><path d="M10 21v-6h4v6"/></svg>',
+};
+---
+
+<article class={`card article-card cat-${category}`}>
+  <div class="card-art">
+    <div class="card-art-bg" style={`background-image: url(${ART[category]})`}></div>
+    <span class="cat-pill">
+      <Fragment set:html={ICONS[category]} />
+      {CATEGORIES[category]}
+    </span>
+  </div>
+  <div class="card-body">
+    <h3><a href={`/articles/${article.id}/`}>{article.data.title}</a></h3>
+    <p>{article.data.description}</p>
+    <span class="card-more" aria-hidden="true">Read guide <span class="card-more-arrow">→</span></span>
+  </div>
+</article>

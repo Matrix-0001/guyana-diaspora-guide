@@ -53,4 +53,4 @@ Call the branch a few weeks ahead and ask for their current non-resident require
 
 ## Why bother, versus just sending transfers
 
-A local account earns its keep when money needs to *live* in Guyana: collecting rent, paying contractors in stages while building, funding a business, holding funds for a land purchase through your attorney, or landing softly as a remigrant. If your only need is family support, regular [remittance transfers](/tools/) remain simpler and often cheaper.
+A local account earns its keep when money needs to *live* in Guyana: collecting rent, paying contractors in stages while building, funding a business, holding funds for a land purchase through your attorney, or landing softly as a remigrant. If your only need is family support, regular [remittance transfers](/tools/remittance-fee-calculator/) remain simpler and often cheaper.

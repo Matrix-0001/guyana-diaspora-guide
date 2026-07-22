@@ -8,6 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 >
   <section class="hero">
     <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
       <h1>Family Sponsorship Wait-Time Estimator</h1>
       <p>
         Pick your status and your relative, and get a realistic picture of the queue — the visa
@@ -17,9 +18,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </section>
 
   <section class="section">
-    <div class="container" style="max-width: var(--content-width);">
-      <div class="tool-panel">
-        <label for="petitioner">Your status</label>
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Pick your immigration status</li>
+        <li><span class="step-num">2</span> Pick who you want to sponsor</li>
+        <li><span class="step-num">3</span> See the visa category and realistic wait</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <label for="petitioner">Your status</label>
         <select id="petitioner">
           <option value="citizen">US citizen</option>
           <option value="lpr">Green card holder (permanent resident)</option>
@@ -35,22 +44,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <option value="sibling">Brother or sister</option>
         </select>
 
-        <div class="tool-result" id="estimate-result">—</div>
+          </div>
+        </div>
 
-        <p class="disclaimer">
-          Estimates reflect typical processing plus recent
-          <a href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" rel="nofollow">Visa Bulletin</a>
-          queue movement for most countries (Guyana falls under the "All Chargeability Areas"
-          column). Queues speed up and slow down — check the current bulletin for exact dates. This
-          is general information, not legal advice.
-        </p>
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your wait</span>
+            <div class="tool-result" id="estimate-result">—</div>
+          </div>
+          <div class="aside-note">
+            Estimates reflect typical processing plus recent
+            <a href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" rel="nofollow">Visa Bulletin</a>
+            queue movement for most countries (Guyana falls under the "All Chargeability Areas"
+            column). Queues speed up and slow down — check the current bulletin for exact dates. This
+            is general information, not legal advice.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/sponsor-family-member-guyana-to-us/">How to sponsor a family member from Guyana to the US</a>
+            <a href="/articles/us-visa-interview-georgetown-tips/">US visitor visa interview at the Georgetown embassy</a>
+          </div>
+        </aside>
       </div>
-
-      <h2 class="section-title" style="margin-top: 3rem;">Related guides</h2>
-      <ul>
-        <li><a href="/articles/sponsor-family-member-guyana-to-us/">How to sponsor a family member from Guyana to the US</a></li>
-        <li><a href="/articles/us-visa-interview-georgetown-tips/">US visitor visa interview at the Georgetown embassy</a></li>
-      </ul>
     </div>
   </section>
 

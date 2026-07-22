@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
 import { CATEGORIES } from '../lib/categories';
 
 const articles = (await getCollection('articles')).sort(
@@ -13,27 +14,43 @@ const articles = (await getCollection('articles')).sort(
   description="Clear, up-to-date guides on sending money to Guyana, sponsoring family, renewing your Guyanese passport, shipping barrels, and buying property back home."
 >
   <section class="hero-banner">
-    <svg class="hero-arrow" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <polygon points="0,40 400,200 0,360" fill="#f5b700" opacity="0.22" />
-      <polygon points="0,100 260,200 0,300" fill="#ce1126" opacity="0.28" />
-      <polygon points="0,150 140,200 0,250" fill="#ffffff" opacity="0.12" />
-    </svg>
-    <div class="container hero-banner-inner">
-      <span class="hero-eyebrow">For Guyanese abroad — New York to Toronto to London</span>
-      <h1>Everything you need to handle business back home in Guyana</h1>
-      <p>
-        Straightforward guides for the diaspora — sending money, sponsoring family, renewing
-        passports, shipping barrels, and investing in property during the oil boom.
-      </p>
-      <div class="hero-actions">
-        <a class="btn gold" href="/tools/">Compare money transfer fees →</a>
-        <a class="btn ghost" href="/category/immigration/">Immigration guides</a>
+    <canvas class="hero-particles" aria-hidden="true"></canvas>
+    <div class="container hero-banner-inner hero-split">
+      <div class="hero-copy">
+        <span class="hero-eyebrow">For Guyanese abroad — New York to Toronto to London</span>
+        <h1>Everything you need to handle business back home in Guyana</h1>
+        <p>
+          Straightforward guides for the diaspora — sending money, sponsoring family, renewing
+          passports, shipping barrels, and investing in property during the oil boom.
+        </p>
+        <div class="hero-actions">
+          <a class="btn gold" href="/tools/remittance-fee-calculator/">Compare money transfer fees →</a>
+          <a class="btn ghost" href="/category/immigration/">Immigration guides</a>
+        </div>
+        <ul class="hero-stats">
+          <li><strong data-countup data-target="500000" data-suffix="+">500,000+</strong> Guyanese living abroad</li>
+          <li><strong data-countup data-prefix="US$" data-target="400" data-suffix="M+">US$400M+</strong> sent home every year</li>
+          <li><strong data-countup data-prefix="≈ G$" data-target="208">≈ G$208</strong> to US$1</li>
+        </ul>
       </div>
-      <ul class="hero-stats">
-        <li><strong>500,000+</strong> Guyanese living abroad</li>
-        <li><strong>US$400M+</strong> sent home every year</li>
-        <li><strong>≈ G$208</strong> to US$1</li>
-      </ul>
+      <figure class="hero-postcard">
+        <img src="/img/hero-postcard.jpg" alt="A hand fanning out Guyanese five-thousand-dollar notes" width="720" height="620" />
+        <figcaption>G$5,000 — straight from home</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="quick-strip" aria-label="Common tasks">
+    <div class="container">
+      <div class="quick-strip-card">
+        <span class="quick-label">I want to…</span>
+        <a href="/tools/remittance-fee-calculator/">Send money home</a>
+        <a href="/tools/barrel-shipping-calculator/">Ship a barrel</a>
+        <a href="/tools/vehicle-import-calculator/">Import a vehicle</a>
+        <a href="/tools/construction-cost-estimator/">Build a house</a>
+        <a href="/tools/visa-wait-estimator/">Sponsor family</a>
+        <a href="/articles/renew-guyana-passport-abroad/">Renew my passport</a>
+      </div>
     </div>
   </section>
 
@@ -43,17 +60,7 @@ const articles = (await getCollection('articles')).sort(
     <div class="container">
       <h2 class="section-title">Latest guides</h2>
       <div class="card-grid">
-        {
-          articles.map((article) => (
-            <article class="card">
-              <span class="kicker">{CATEGORIES[article.data.category]}</span>
-              <h3>
-                <a href={`/articles/${article.id}/`}>{article.data.title}</a>
-              </h3>
-              <p>{article.data.description}</p>
-            </article>
-          ))
-        }
+        {articles.map((article) => <ArticleCard article={article} />)}
       </div>
     </div>
   </section>
@@ -80,4 +87,94 @@ const articles = (await getCollection('articles')).sort(
       </div>
     </div>
   </section>
+
+  <script>
+    // Count-up animation for hero stats (progressive enhancement — static text stays if JS fails)
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+      document.querySelectorAll<HTMLElement>('[data-countup]').forEach((el) => {
+        const target = Number(el.dataset.target);
+        if (!Number.isFinite(target)) return;
+        const prefix = el.dataset.prefix ?? '';
+        const suffix = el.dataset.suffix ?? '';
+        const duration = 1300;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const t = Math.min((now - start) / duration, 1);
+          const value = Math.round(easeOut(t) * target);
+          el.textContent = `${prefix}${value.toLocaleString('en-US')}${suffix}`;
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // Live hero background: gold specks drifting upward over the gradient.
+    // Pure canvas — free to host on a static site, ~zero page-weight cost.
+    const canvas = document.querySelector<HTMLCanvasElement>('.hero-particles');
+    if (canvas && !reduceMotion) {
+      const ctx = canvas.getContext('2d')!;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let w = 0;
+      let h = 0;
+
+      interface Speck {
+        x: number; y: number; r: number; vy: number; sway: number;
+        phase: number; alpha: number; gold: boolean;
+      }
+      let specks: Speck[] = [];
+
+      const seed = () => {
+        const count = Math.round(Math.min(w / 28, 55));
+        specks = Array.from({ length: count }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: 0.8 + Math.random() * 2.2,
+          vy: 0.15 + Math.random() * 0.35,
+          sway: 8 + Math.random() * 18,
+          phase: Math.random() * Math.PI * 2,
+          alpha: 0.15 + Math.random() * 0.4,
+          gold: Math.random() < 0.65,
+        }));
+      };
+
+      const resize = () => {
+        const rect = canvas.parentElement!.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seed();
+      };
+
+      let raf = 0;
+      const draw = (now: number) => {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of specks) {
+          s.y -= s.vy;
+          if (s.y < -4) { s.y = h + 4; s.x = Math.random() * w; }
+          const x = s.x + Math.sin(now / 2400 + s.phase) * s.sway;
+          const twinkle = 0.75 + 0.25 * Math.sin(now / 900 + s.phase * 3);
+          ctx.globalAlpha = s.alpha * twinkle;
+          ctx.fillStyle = s.gold ? '#f5b700' : '#ffffff';
+          ctx.beginPath();
+          ctx.arc(x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        raf = requestAnimationFrame(draw);
+      };
+
+      resize();
+      window.addEventListener('resize', resize);
+      draw(performance.now()); // paint immediately; rAF takes over from there
+      // Don't burn battery when the tab is hidden.
+      document.addEventListener('visibilitychange', () => {
+        cancelAnimationFrame(raf);
+        if (!document.hidden) raf = requestAnimationFrame(draw);
+      });
+    }
+  </script>
 </BaseLayout>

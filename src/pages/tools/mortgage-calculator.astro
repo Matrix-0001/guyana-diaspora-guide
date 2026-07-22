@@ -1,0 +1,203 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const faqs = [
+  {
+    q: 'How much are mortgage payments in Guyana?',
+    a: 'It depends on the loan amount, interest rate, and term. As a rule of thumb at recent market rates: roughly G$60,000–75,000 per month per G$10 million borrowed over 20–25 years. Use the calculator above with the rate your bank actually quotes you.',
+  },
+  {
+    q: 'Which banks offer mortgages in Guyana?',
+    a: 'The New Building Society (NBS) is the traditional mortgage lender, and the commercial banks — Republic Bank, GBTI, Demerara Bank, Citizens Bank, and Bank of Baroda — all offer mortgage products. Rates differ by lender, loan size, and whether the property qualifies for low-income housing programs, so collect at least two quotes.',
+  },
+  {
+    q: 'Can overseas Guyanese get a mortgage in Guyana?',
+    a: "It's possible but harder — lenders generally want local income, a local co-borrower, or a substantial deposit, and non-resident applications face extra scrutiny. Many diaspora buyers instead build or buy in stages with cash. If you do pursue a mortgage from abroad, start the conversation with the bank before choosing the property.",
+  },
+  {
+    q: 'What is mortgage interest relief in Guyana?',
+    a: 'First-time homeowners can claim back the income tax paid on their mortgage interest (for qualifying loans) through the GRA — a meaningful yearly refund in the early, interest-heavy years of a mortgage. Ask your bank for the annual interest statement and file with the GRA.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guyana Mortgage Calculator — Monthly Payments & Amortization"
+  description="Calculate mortgage payments in Guyana — monthly payment, total interest, and full amortization for NBS and commercial bank loans, with affordability guidance and mortgage interest relief notes."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Mortgage &amp; Loan Calculator</h1>
+      <p>
+        Monthly payments, total interest, and how the balance falls over time — for any loan amount,
+        rate, and term a Guyanese lender quotes you.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter the loan amount your bank quoted</li>
+        <li><span class="step-num">2</span> Add the rate and term</li>
+        <li><span class="step-num">3</span> See the payment, total interest, and affordability</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">✓ Standard amortization math — works with any lender's quoted rate</p>
+
+            <label for="amount">Loan amount (G$)</label>
+        <input type="number" id="amount" value="10000000" min="0" step="100000" />
+
+        <label for="rate">Annual interest rate (%) — use the rate your bank quotes; NBS and commercial banks vary by product</label>
+        <input type="number" id="rate" value="6" min="0.1" max="25" step="0.05" />
+
+        <label for="term">Term (years)</label>
+        <input type="number" id="term" value="20" min="1" max="35" step="1" />
+
+        <label for="income">Your gross monthly income (G$, optional — for affordability check)</label>
+        <input type="number" id="income" value="" placeholder="optional" min="0" step="10000" />
+
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your payment</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Standard amortized-loan math; actual bank offers add fees, insurance requirements, and
+            their own affordability rules (banks commonly want the payment under about a third of
+            gross income). First-time homeowners: ask about <strong>mortgage interest relief</strong>
+            through the GRA — the income tax on your mortgage interest can be refunded for qualifying
+            loans. Confirm current rates and terms with NBS, Republic Bank, GBTI, Demerara Bank,
+            Citizens Bank, or Bank of Baroda directly.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/building-house-guyana-from-abroad/">Building a house in Guyana from abroad</a>
+            <a href="/articles/buying-land-in-guyana-from-abroad/">Buying land in Guyana without getting scammed</a>
+            <a href="/tools/salary-calculator/">Salary &amp; Tax Calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function calculate() {
+      const principal = parseFloat($('amount').value) || 0;
+      const annualRate = parseFloat($('rate').value) || 0;
+      const years = parseInt($('term').value, 10) || 0;
+      const income = parseFloat($('income').value) || 0;
+      const box = document.getElementById('result-box')!;
+
+      if (principal <= 0 || annualRate <= 0 || years <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter the loan amount, rate, and term to calculate.</div>';
+        return;
+      }
+
+      const r = annualRate / 100 / 12;
+      const n = years * 12;
+      const payment = (principal * r) / (1 - Math.pow(1 + r, -n));
+      const totalPaid = payment * n;
+      const totalInterest = totalPaid - principal;
+
+      // Balance milestones every 5 years
+      let balance = principal;
+      const milestones: string[] = [];
+      for (let month = 1; month <= n; month++) {
+        balance = balance * (1 + r) - payment;
+        if (month % 60 === 0 && month < n) {
+          milestones.push(`<tr><td>After ${month / 12} years</td><td style="text-align:right;">${fmt(Math.max(0, balance))}</td></tr>`);
+        }
+      }
+
+      let affordability = '';
+      if (income > 0) {
+        const ratio = (payment / income) * 100;
+        const verdict =
+          ratio <= 33
+            ? 'within the ~⅓-of-income guideline banks commonly use'
+            : ratio <= 40
+              ? 'above the ~⅓ guideline — some lenders may still consider it'
+              : 'well above what most lenders will approve';
+        affordability = `<span style="font-size:0.88rem;display:block;margin-top:0.5rem;">This payment is <strong style="font-size:1rem;">${ratio.toFixed(0)}%</strong> of your gross income — ${verdict}.</span>`;
+      }
+
+      box.innerHTML = `
+        <div class="tool-result">
+          Monthly payment: <strong>${fmt(payment)}</strong>
+          <span style="font-size:0.88rem;display:block;margin-top:0.25rem;">Total repaid over ${years} years: ${fmt(totalPaid)} — of which <strong style="font-size:1rem;">${fmt(totalInterest)}</strong> is interest.</span>
+          ${milestones.length ? `<table style="margin-top:0.6rem;"><thead><tr><th>Remaining balance</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${milestones.join('')}</tbody></table>` : ''}
+          ${affordability}
+        </div>
+      `;
+
+      const params = new URLSearchParams({ amount: String(principal), rate: String(annualRate), term: String(years) });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Guyana mortgage: ${fmt(principal)} at ${annualRate}% over ${years} years = ${fmt(payment)}/month (${fmt(totalInterest)} total interest). ` +
+        `Calculate yours: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['amount', 'rate', 'term', 'income'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('amount')) $('amount').value = qp.get('amount')!;
+    if (qp.has('rate')) $('rate').value = qp.get('rate')!;
+    if (qp.has('term')) $('term').value = qp.get('term')!;
+    calculate();
+  </script>
+</BaseLayout>

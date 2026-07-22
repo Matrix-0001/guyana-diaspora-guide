@@ -1,0 +1,214 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const faqs = [
+  {
+    q: 'How is the NIS old age pension calculated in Guyana?',
+    a: "The pension is 40% of your 'relevant wage' — your average insurable earnings from the best 3 of your last 5 working years — plus 1% for every 50 contributions beyond the first 750, up to a maximum of 60%. The result can't be below the minimum pension (G$43,075 per month as of 2026).",
+  },
+  {
+    q: 'How many NIS contributions do I need for a pension?',
+    a: 'You need at least 750 paid contributions (roughly 15 years of weekly contributions) to qualify for the old age pension at age 60. With between 50 and 749 contributions you get a one-off Old Age Grant instead of a monthly pension.',
+  },
+  {
+    q: 'Can I get my NIS pension if I live abroad?',
+    a: "Yes — NIS pensions can be paid to qualified pensioners living overseas. If you worked in Guyana before migrating, your contributions don't disappear; it's worth requesting your contribution record from NIS to see where you stand, especially if you're within reach of the 750 minimum.",
+  },
+  {
+    q: 'What is the maximum NIS pension?',
+    a: 'The pension percentage caps at 60% of your relevant wage, which you reach at 1,750 contributions (about 34 years). Since insurable earnings are capped at the NIS ceiling (G$280,000 per month in 2026), the effective maximum pension is 60% of that ceiling.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="NIS Pension Estimator Guyana — Old Age Pension Calculator 2026"
+  description="Estimate your Guyana NIS old age pension — the official 40%-plus-1%-per-50-contributions formula, the 750-contribution minimum, the 60% cap, and the G$43,075 minimum pension, explained and calculated."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>NIS Pension Estimator</h1>
+      <p>
+        What your Guyana NIS old age pension will actually pay — using the Scheme's official
+        formula, including for Guyanese who worked home before migrating.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter your years of NIS contributions</li>
+        <li><span class="step-num">2</span> Add your average monthly earnings</li>
+        <li><span class="step-num">3</span> See your monthly pension under the official formula</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">
+              ✓ Official NIS formula (40% + 1% per 50 contributions over 750, cap 60%) · minimum pension G$43,075/mo (2026)
+            </p>
+
+            <label for="years">Years of NIS contributions (≈ 52 weekly contributions per year)</label>
+        <input type="number" id="years" value="20" min="0" max="50" step="0.5" />
+
+        <label for="earnings">Average monthly insurable earnings in your best 3 of the last 5 working years (G$, capped at G$280,000)</label>
+        <input type="number" id="earnings" value="200000" min="0" step="5000" />
+
+          </div>
+
+          <div>
+            <h2 class="section-title">How the formula works</h2>
+      <table class="fee-table">
+        <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Qualifying age</td><td>60 years</td></tr>
+          <tr><td>Minimum contributions for pension</td><td>750 paid (≈ 15 years) — 50–749 gets a one-off Old Age Grant instead</td></tr>
+          <tr><td>Base rate</td><td>40% of relevant wage (best 3 of last 5 years' average insurable earnings)</td></tr>
+          <tr><td>Increment</td><td>+1% per 50 contributions above 750</td></tr>
+          <tr><td>Maximum rate</td><td>60% (reached at 1,750 contributions ≈ 34 years)</td></tr>
+          <tr><td>Minimum pension</td><td>G$43,075 per month (2026)</td></tr>
+          <tr><td>Insurable earnings ceiling</td><td>G$280,000 per month</td></tr>
+        </tbody>
+      </table>
+
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your NIS pension</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Estimate only. Your actual pension uses your NIS contribution record — request it from
+            <a href="https://www.nis.org.gy/" rel="nofollow">NIS</a> to know your exact contribution
+            count and insurable earnings. Credited contributions can also count toward the total.
+            Source: <a href="https://www.nis.org.gy/oldage_benefit" rel="nofollow">NIS — Old Age Benefit</a>;
+            we re-verify after NIS announcements and each national budget.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/tools/salary-calculator/">Salary &amp; Tax Calculator (PAYE + NIS)</a>
+            <a href="/articles/retiring-in-guyana-foreign-pension/">Retiring in Guyana on a US, Canadian, or UK pension</a>
+            <a href="/articles/guyana-tax-rules-remigrants/">Guyana tax rules for remigrants</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    // NIS old age pension: 40% of relevant wage + 1% per 50 contributions over 750,
+    // capped at 60%; earnings capped at G$280,000/mo; minimum pension G$43,075/mo (2026).
+    const CEILING = 280000;
+    const MIN_PENSION = 43075;
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function calculate() {
+      const years = parseFloat($('years').value) || 0;
+      const earningsRaw = parseFloat($('earnings').value) || 0;
+      const earnings = Math.min(earningsRaw, CEILING);
+      const contributions = Math.round(years * 52);
+      const box = document.getElementById('result-box')!;
+
+      if (contributions < 50) {
+        box.innerHTML = `<div class="tool-result">With ${contributions} contributions you would not yet qualify for an NIS old age benefit — 50+ contributions earns a one-off grant, 750+ earns the monthly pension.</div>`;
+        return;
+      }
+      if (contributions < 750) {
+        box.innerHTML = `
+          <div class="tool-result">
+            <strong>Not yet pension-qualified.</strong><br />
+            <span style="font-size:0.95rem;">${contributions} contributions is below the 750 minimum for a monthly pension — you'd receive a one-off <strong>Old Age Grant</strong> instead.
+            You need about <strong>${Math.ceil((750 - contributions) / 52)} more years</strong> of contributions to qualify for the monthly pension. If you're abroad, request your record from NIS — credited contributions may put you closer than you think.</span>
+          </div>`;
+        updateShare(contributions, 0);
+        return;
+      }
+
+      const pct = Math.min(60, 40 + Math.floor((contributions - 750) / 50));
+      const raw = (pct / 100) * earnings;
+      const pension = Math.max(raw, MIN_PENSION);
+      const capped = earningsRaw > CEILING;
+
+      box.innerHTML = `
+        <div class="tool-result">
+          Estimated pension: <strong>${fmt(pension)}</strong> / month (${fmt(pension * 12)} / year)
+          <table style="margin-top:0.6rem;">
+            <tbody>
+              <tr><td>Contributions (≈ ${years} years × 52)</td><td>${contributions.toLocaleString('en-US')}</td></tr>
+              <tr><td>Pension rate (40% + ${pct - 40}% increments)</td><td>${pct}%</td></tr>
+              <tr><td>Relevant wage${capped ? ' (capped at ceiling)' : ''}</td><td>${fmt(earnings)}/mo</td></tr>
+              ${raw < MIN_PENSION ? `<tr><td>Formula result ${fmt(raw)} — raised to minimum</td><td>${fmt(MIN_PENSION)}</td></tr>` : ''}
+            </tbody>
+          </table>
+          <span style="font-size:0.85rem;display:block;margin-top:0.5rem;">Payable from age 60, for life${pct < 60 ? ` — each additional year of contributions adds about 1% until the 60% cap` : ' — you’ve reached the 60% maximum rate'}.</span>
+        </div>
+      `;
+      updateShare(contributions, pension);
+    }
+
+    function updateShare(contributions: number, pension: number) {
+      const params = new URLSearchParams({ years: $('years').value, earnings: $('earnings').value });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary = pension
+        ? `My estimated Guyana NIS pension: ${fmt(pension)}/month (${contributions.toLocaleString('en-US')} contributions). Estimate yours: ${location.origin}${location.pathname}?${params}`
+        : `Check how close you are to a Guyana NIS pension: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['years', 'earnings'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('years')) $('years').value = qp.get('years')!;
+    if (qp.has('earnings')) $('earnings').value = qp.get('earnings')!;
+    calculate();
+  </script>
+</BaseLayout>

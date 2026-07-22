@@ -1,0 +1,193 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Boom-era ballpark ranges per sq ft (GYD), triangulated from Guyanese builders'
+// published 2025/2026 figures. Wide ranges are honest here — location, soil/foundation
+// (coastal clay vs sand), and finish choices swing costs enormously.
+const LEVELS = [
+  { key: 'basic', label: 'Basic finish', low: 24000, high: 32000, desc: 'Simple layouts, standard fixtures, basic tiling and fittings' },
+  { key: 'mid', label: 'Mid-range finish', low: 32000, high: 45000, desc: 'Better kitchens and bathrooms, quality tiles, some custom work' },
+  { key: 'high', label: 'High-end finish', low: 45000, high: 60000, desc: 'Custom design, imported finishes, premium kitchens and features' },
+];
+
+const faqs = [
+  {
+    q: 'How much does it cost to build a house in Guyana in 2026?',
+    a: 'Builders’ published figures put boom-era construction at roughly G$24,000–32,000 per square foot for a basic finish, G$32,000–45,000 mid-range, and G$45,000+ high-end — so a basic 1,200 sq ft home lands around G$29–38 million before land. Costs have risen sharply since the oil boom; always price from current quotes, not older numbers.',
+  },
+  {
+    q: 'Why is building in Guyana so expensive now?',
+    a: 'The oil boom lifted everything at once: cement, steel, and lumber prices, skilled trades’ wages (masons, electricians, plumbers are in heavy demand), and land. Coastal construction also needs serious foundations — driven piles or thick reinforced slabs on clay — which adds cost invisible in the finished house.',
+  },
+  {
+    q: 'How much contingency should I budget for a build?',
+    a: 'Add 15–20% on top of your quoted cost. Between material price movements, design changes, and ground conditions, builds that finish on the original number are the exception — treat the contingency as part of the real budget, not an optional extra.',
+  },
+  {
+    q: 'What government help exists for building a home?',
+    a: 'The 2026 national budget included a G$7.5 billion home construction support programme, and house lots and low-income housing programmes run through the CH&PA. First-time homeowners with mortgages also benefit from mortgage interest relief through the GRA.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Construction Cost Estimator Guyana — Cost to Build a House 2026"
+  description="Estimate the cost to build a house in Guyana at 2026 boom-era prices — basic, mid-range, and high-end finish levels per square foot, with contingency and a realistic budget range."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Construction Cost Estimator</h1>
+      <p>
+        What building really costs in boom-era Guyana — honest ranges by finish level, with the
+        contingency you'll actually need.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter the size of the house you're planning</li>
+        <li><span class="step-num">2</span> Pick a finish level and contingency</li>
+        <li><span class="step-num">3</span> Get a realistic budget range, not a fantasy number</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">✓ 2026 ballpark ranges from Guyanese builders' published figures · get 3 quotes before committing</p>
+
+            <label for="sqft">House size (square feet)</label>
+        <input type="number" id="sqft" value="1200" min="100" step="50" />
+
+        <label for="level">Finish level</label>
+        <select id="level">
+          {LEVELS.map((l, i) => <option value={i}>{l.label} — ~G${l.low.toLocaleString('en-US')}–{l.high.toLocaleString('en-US')}/sq ft</option>)}
+        </select>
+        <p id="level-desc" style="margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--ink-soft);"></p>
+
+        <label for="contingency">Contingency (%)</label>
+        <input type="number" id="contingency" value="15" min="0" max="30" step="1" />
+
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your build budget</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Ballpark ranges only — construction pricing varies enormously with location (Georgetown
+            and East Bank run higher), foundation needs on coastal clay, material choices, and who's
+            building. Land, fences, and outside works are extra. Get at least three written quotes
+            from licensed contractors, and if you're managing the build from abroad,
+            <a href="/articles/building-house-guyana-from-abroad/">read our guide on doing it safely</a> first.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/building-house-guyana-from-abroad/">Building a house in Guyana from abroad</a>
+            <a href="/tools/mortgage-calculator/">Mortgage &amp; Loan Calculator</a>
+            <a href="/tools/property-cost-calculator/">Property Purchase Cost Calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script define:vars={{ LEVELS }}>
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => 'G$' + Math.round(n).toLocaleString('en-US');
+    const fmtM = (n) => 'G$' + (n / 1e6).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M';
+    let lastSummary = '';
+
+    function calculate() {
+      const sqft = parseFloat($('sqft').value) || 0;
+      const level = LEVELS[parseInt($('level').value, 10)] || LEVELS[0];
+      const contPct = (parseFloat($('contingency').value) || 0) / 100;
+      $('level-desc').textContent = level.desc;
+      const box = $('result-box');
+
+      if (sqft <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter the house size.</div>';
+        return;
+      }
+
+      const low = sqft * level.low;
+      const high = sqft * level.high;
+      const lowAll = low * (1 + contPct);
+      const highAll = high * (1 + contPct);
+
+      box.innerHTML = `
+        <div class="tool-result">
+          Realistic budget: <strong>${fmtM(lowAll)} – ${fmtM(highAll)}</strong>
+          <table style="margin-top:0.6rem;">
+            <tbody>
+              <tr><td>Construction (${sqft.toLocaleString('en-US')} sq ft, ${level.label.toLowerCase()})</td><td>${fmtM(low)} – ${fmtM(high)}</td></tr>
+              <tr><td>Contingency (${(contPct * 100).toFixed(0)}%)</td><td>${fmtM(low * contPct)} – ${fmtM(high * contPct)}</td></tr>
+            </tbody>
+          </table>
+          <span style="font-size:0.85rem;display:block;margin-top:0.5rem;">(${fmt(lowAll)} – ${fmt(highAll)}) — excluding land, fencing, and outside works. Labour typically runs 30–40% of construction cost.</span>
+        </div>
+      `;
+
+      const params = new URLSearchParams({ sqft: String(sqft), level: $('level').value, cont: $('contingency').value });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Building a ${sqft.toLocaleString('en-US')} sq ft ${level.label.toLowerCase()} house in Guyana: realistic budget ${fmtM(lowAll)}–${fmtM(highAll)} incl. contingency. ` +
+        `Estimate yours: ${location.origin}${location.pathname}?${params}`;
+      $('share-wa').href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    $('share-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = $('share-copy');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['sqft', 'level', 'contingency'].forEach((id) => $(id).addEventListener('input', calculate));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('sqft')) $('sqft').value = qp.get('sqft');
+    if (qp.has('level')) $('level').value = qp.get('level');
+    if (qp.has('cont')) $('contingency').value = qp.get('cont');
+    calculate();
+  </script>
+</BaseLayout>

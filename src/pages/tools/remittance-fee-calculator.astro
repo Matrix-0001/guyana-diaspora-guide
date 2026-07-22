@@ -1,0 +1,178 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const SERVICES = [
+  { name: 'Western Union', fee: 8, rate: 205 },
+  { name: 'MoneyGram', fee: 6, rate: 204 },
+  { name: 'Ria', fee: 4, rate: 203 },
+  { name: 'Bank wire', fee: 35, rate: 206 },
+];
+---
+
+<BaseLayout
+  title="Remittance Fee Calculator — Compare Sending Money to Guyana"
+  description="Free calculator to compare the real cost of sending money to Guyana across services — fees plus exchange rate markup — so you know which service pays out the most."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Remittance Fee Calculator</h1>
+      <p>
+        The cheapest service isn't the one with the lowest fee — it's the one that puts the most
+        Guyanese dollars in your recipient's hand. This compares the <em>real</em> payout.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter how much you're sending</li>
+        <li><span class="step-num">2</span> Copy the fee and rate each service quotes you today</li>
+        <li><span class="step-num">3</span> See who actually pays out the most</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-card">
+            <label class="input-lg-label" for="send-amount">Amount you're sending</label>
+            <div class="input-lg-wrap">
+              <span class="input-lg-prefix">US$</span>
+              <input class="input-lg" type="number" id="send-amount" value="200" min="1" step="1" inputmode="decimal" />
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <h2 class="tool-card-title">Your quotes</h2>
+            <p class="tool-card-hint">
+              Fees and rates change daily — grab today's numbers from each service's app or website.
+              Tap a service name to rename it.
+            </p>
+            <div class="svc-list" id="svc-list">
+              {
+                SERVICES.map((svc) => (
+                  <div class="svc-row">
+                    <div class="svc-head">
+                      <input class="svc-name" type="text" value={svc.name} aria-label="Service name" />
+                      <span class="svc-best-badge">Best payout</span>
+                    </div>
+                    <div class="svc-fields">
+                      <label>
+                        Fee (US$)
+                        <input type="number" class="fee" value={svc.fee} min="0" step="0.01" inputmode="decimal" />
+                      </label>
+                      <label>
+                        Rate (G$ per US$)
+                        <input type="number" class="rate" value={svc.rate} min="1" step="0.1" inputmode="decimal" />
+                      </label>
+                      <div class="svc-payout">
+                        <span class="svc-payout-label">Recipient gets</span>
+                        <span class="payout">—</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+            <button class="btn ghost btn-add-svc" id="add-svc" type="button">+ Add another service</button>
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" id="result-card" aria-live="polite">
+            <span class="result-label">Best payout right now</span>
+            <span class="result-value" id="result-value">—</span>
+            <span class="result-detail" id="result-detail">Enter your numbers to compare.</span>
+            <span class="result-delta" id="result-delta"></span>
+          </div>
+          <div class="aside-note" id="rate-note">
+            The pre-filled numbers are <strong>examples only</strong> — replace them with today's
+            quotes. Services pay out below the official rate of about G$208–210 per US$1.
+          </div>
+          <div class="aside-links">
+            <strong>Keep reading</strong>
+            <a href="/articles/cheapest-way-to-send-money-to-guyana/">The cheapest way to send money to Guyana</a>
+            <a href="/convert/">Currency converter (USD, CAD, GBP → GYD)</a>
+            <a href="/tools/barrel-shipping-calculator/">Barrel shipping cost calculator</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const list = document.getElementById('svc-list')!;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+    function recalc() {
+      const amount = parseFloat((document.getElementById('send-amount') as HTMLInputElement).value) || 0;
+      const rows = Array.from(list.querySelectorAll<HTMLElement>('.svc-row'));
+      let best: { row: HTMLElement; payout: number } | null = null;
+      let worst: number | null = null;
+
+      for (const row of rows) {
+        const fee = parseFloat((row.querySelector('.fee') as HTMLInputElement).value) || 0;
+        const rate = parseFloat((row.querySelector('.rate') as HTMLInputElement).value) || 0;
+        const payout = Math.max(0, (amount - fee) * rate);
+        (row.querySelector('.payout') as HTMLElement).textContent = payout > 0 ? fmt(payout) : '—';
+        row.classList.remove('is-best');
+        if (payout > 0) {
+          if (!best || payout > best.payout) best = { row, payout };
+          if (worst === null || payout < worst) worst = payout;
+        }
+      }
+
+      const value = document.getElementById('result-value')!;
+      const detail = document.getElementById('result-detail')!;
+      const delta = document.getElementById('result-delta')!;
+      if (best) {
+        best.row.classList.add('is-best');
+        const name = (best.row.querySelector('.svc-name') as HTMLInputElement).value || 'Best service';
+        value.textContent = fmt(best.payout);
+        detail.textContent = `via ${name} on US$${amount.toLocaleString('en-US')}`;
+        delta.textContent =
+          worst !== null && best.payout - worst > 0
+            ? `That's ${fmt(best.payout - worst)} more than the lowest quote.`
+            : '';
+      } else {
+        value.textContent = '—';
+        detail.textContent = 'Enter your numbers to compare.';
+        delta.textContent = '';
+      }
+    }
+
+    function wire(el: Element) {
+      el.querySelectorAll('input').forEach((i) => i.addEventListener('input', recalc));
+    }
+
+    wire(list);
+    document.getElementById('send-amount')!.addEventListener('input', recalc);
+
+    document.getElementById('add-svc')!.addEventListener('click', () => {
+      const row = list.querySelector('.svc-row')!.cloneNode(true) as HTMLElement;
+      (row.querySelector('.svc-name') as HTMLInputElement).value = 'Another service';
+      (row.querySelector('.fee') as HTMLInputElement).value = '0';
+      (row.querySelector('.rate') as HTMLInputElement).value = '205';
+      row.classList.remove('is-best');
+      list.appendChild(row);
+      wire(row);
+      recalc();
+      (row.querySelector('.svc-name') as HTMLInputElement).focus();
+    });
+
+    recalc();
+
+    // Show today's live mid-market rate as a reference point.
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then((res) => res.json())
+      .then((data) => {
+        const liveRate = data?.rates?.GYD;
+        if (data?.result !== 'success' || !liveRate) return;
+        document.getElementById('rate-note')!.innerHTML =
+          `Today's mid-market rate is about <strong>G$${liveRate.toFixed(2)} per US$1</strong> — ` +
+          'services pay out below this. The pre-filled numbers are <strong>examples only</strong>; ' +
+          'replace them with the quotes each service shows you today.';
+      })
+      .catch(() => {});
+  </script>
+</BaseLayout>

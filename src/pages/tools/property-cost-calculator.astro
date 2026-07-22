@@ -1,0 +1,257 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const faqs = [
+  {
+    q: 'How much are closing costs when buying property in Guyana?',
+    a: 'Budget roughly 4–5% of the purchase price on top of the price itself: stamp duty (2% for transported property, 2.5% for titled property), small registry fees, and attorney fees typically 1.5–2%. Titled property adds a 0.25% registration fee and 0.1% assurance fund contribution.',
+  },
+  {
+    q: 'What is the difference between transport and title fees?',
+    a: 'Transported property (Deeds Registry) pays 2% stamp duty plus a 0.5% conveyancing fee, and the transfer must be advertised for three consecutive weeks with an objection period. Titled property (Land Registry) pays 2.5% stamp duty, 0.25% registration, and 0.1% to the assurance fund — usually a faster process.',
+  },
+  {
+    q: 'Who pays the stamp duty — buyer or seller?',
+    a: "In practice the buyer typically bears the transfer costs in Guyana, but it's negotiable and should be written into the agreement of sale. Sellers have their own attorney fees, and may face capital gains tax on the profit.",
+  },
+  {
+    q: 'Is there capital gains tax when selling property in Guyana?',
+    a: 'Yes — capital gains tax at 20% can apply to the gain on a sale, though exemptions exist (including for assets held very long term). Sellers should get advice from their attorney or the GRA on their specific position before pricing a sale.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guyana Property Purchase Cost Calculator — Stamp Duty & Closing Costs"
+  description="Calculate the full closing costs of buying property in Guyana — stamp duty for transport (2%) or title (2.5%), registry fees, attorney fees, and seller-side capital gains tax."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
+      <h1>Property Purchase Cost Calculator</h1>
+      <p>
+        The price is only the start — stamp duty, registry fees, and attorneys add several percent.
+        Know the full closing bill before you commit.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Enter the purchase price</li>
+        <li><span class="step-num">2</span> Say how the property is held — transport or title</li>
+        <li><span class="step-num">3</span> See the full closing bill before you commit</li>
+      </ol>
+
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <p class="trust-badge">
+              ✓ Deeds &amp; Land Registry fee structure: 2% / 2.5% stamp duty + registry fees · verified July 2026
+            </p>
+
+            <label for="price">Purchase price (G$)</label>
+        <input type="number" id="price" value="30000000" min="0" step="500000" />
+
+        <label for="system">How is the property held?</label>
+        <select id="system">
+          <option value="transport">Transport (Deeds Registry)</option>
+          <option value="title">Certificate of Title (Land Registry)</option>
+          <option value="unsure">Not sure — show both</option>
+        </select>
+
+        <label for="attorney">Attorney fee (%) — typically 1.5–2% of the price</label>
+        <input type="number" id="attorney" value="1.75" min="0" max="5" step="0.25" />
+
+          </div>
+
+          <div>
+            <h2 class="section-title">Selling? The capital gains side</h2>
+            <div class="tool-panel">
+              <label for="sale">Sale price (G$)</label>
+              <input type="number" id="sale" value="" placeholder="optional" min="0" step="500000" />
+              <label for="cost">What the property cost you (G$, plus documented improvements)</label>
+              <input type="number" id="cost" value="" placeholder="optional" min="0" step="500000" />
+              <div id="cgt-box" style="margin-top: 1rem;"></div>
+              <p class="disclaimer">
+                Capital gains tax is 20% of the chargeable gain; exemptions can apply (including
+                long-held assets) — confirm your position with your attorney or the GRA before pricing a
+                sale.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq">
+            <h2 class="section-title">Frequently asked questions</h2>
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your closing costs</span>
+            <div id="result-box"></div>
+            <div class="share-row" style="margin-top: 1rem;">
+              <span class="share-label">Share:</span>
+              <a class="share-btn whatsapp" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="share-btn copy-link" id="share-copy" type="button">Copy link</button>
+            </div>
+          </div>
+          <div class="aside-note">
+            Estimate of the main buyer-side costs. Small additional charges apply (gazette
+            advertising for transports, certificate fees, copies), and values used for duty are
+            subject to official valuation. Transported transfers also take longer — three weeks of
+            advertising plus an objection period. Confirm the full bill with your attorney, and if
+            you're buying from abroad,
+            <a href="/articles/buying-land-in-guyana-from-abroad/">read our due-diligence guide first</a>.
+            Sources: <a href="https://dcraguyana.org/transport/" rel="nofollow">Deeds &amp; Commercial Registries Authority</a>.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/buying-land-in-guyana-from-abroad/">Buying land in Guyana without getting scammed</a>
+            <a href="/tools/mortgage-calculator/">Mortgage &amp; Loan Calculator</a>
+            <a href="/tools/land-converter/">Land Measurement Converter</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">Advertisement</div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    // Buyer-side: Transport (Deeds Registry): 2% stamp + 0.5% conveyancing.
+    // Title (Land Registry): 2.5% stamp + 0.25% registration + 0.1% assurance fund.
+    // Attorney: user-set % (typical 1.5–2%). Seller-side CGT: 20% of gain.
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const fmt = (n: number) => 'G$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    let lastSummary = '';
+
+    function costsFor(price: number, system: string, attorneyPct: number) {
+      const attorney = (attorneyPct / 100) * price;
+      if (system === 'transport') {
+        const stamp = 0.02 * price;
+        const conveyancing = 0.005 * price;
+        return {
+          rows: [
+            ['Stamp duty (2%)', stamp],
+            ['Conveyancing fee (0.5%)', conveyancing],
+            [`Attorney (${attorneyPct}%)`, attorney],
+          ],
+          total: stamp + conveyancing + attorney,
+        };
+      }
+      const stamp = 0.025 * price;
+      const registration = 0.0025 * price;
+      const assurance = 0.001 * price;
+      return {
+        rows: [
+          ['Stamp duty (2.5%)', stamp],
+          ['Registration fee (0.25%)', registration],
+          ['Assurance fund (0.1%)', assurance],
+          [`Attorney (${attorneyPct}%)`, attorney],
+        ],
+        total: stamp + registration + assurance + attorney,
+      };
+    }
+
+    function renderSystem(price: number, system: string, attorneyPct: number, heading?: string) {
+      const { rows, total } = costsFor(price, system, attorneyPct);
+      const rowsHtml = rows
+        .map(([label, v]) => `<tr><td>${label}</td><td style="text-align:right;">${fmt(v as number)}</td></tr>`)
+        .join('');
+      return `
+        <div class="tool-result" style="margin-top: 0.75rem;">
+          ${heading ? `<span style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.2rem;color:var(--gold-soft);">${heading}</span>` : ''}
+          Closing costs: <strong>${fmt(total)}</strong>
+          <span style="font-size:0.88rem;display:block;">(${((total / price) * 100).toFixed(1)}% of price) — all-in ${fmt(price + total)}</span>
+          <table style="margin-top:0.5rem;"><tbody>${rowsHtml}</tbody></table>
+        </div>`;
+    }
+
+    function calculate() {
+      const price = parseFloat($('price').value) || 0;
+      const system = $('system').value;
+      const attorneyPct = parseFloat($('attorney').value) || 0;
+      const box = document.getElementById('result-box')!;
+
+      if (price <= 0) {
+        box.innerHTML = '<div class="tool-result">Enter the purchase price.</div>';
+        return;
+      }
+
+      if (system === 'unsure') {
+        box.innerHTML =
+          renderSystem(price, 'transport', attorneyPct, 'If held by Transport (Deeds Registry)') +
+          renderSystem(price, 'title', attorneyPct, 'If held by Certificate of Title (Land Registry)');
+      } else {
+        box.innerHTML = renderSystem(price, system, attorneyPct);
+      }
+
+      const { total } = costsFor(price, system === 'unsure' ? 'title' : system, attorneyPct);
+      const params = new URLSearchParams({ price: String(price), sys: system, att: String(attorneyPct) });
+      history.replaceState(null, '', `${location.pathname}?${params}`);
+      lastSummary =
+        `Closing costs on a ${fmt(price)} property in Guyana: about ${fmt(total)} (stamp duty + registry + attorney). ` +
+        `Calculate yours: ${location.origin}${location.pathname}?${params}`;
+      (document.getElementById('share-wa') as HTMLAnchorElement).href = `https://wa.me/?text=${encodeURIComponent(lastSummary)}`;
+    }
+
+    function calculateCgt() {
+      const sale = parseFloat($('sale').value) || 0;
+      const cost = parseFloat($('cost').value) || 0;
+      const box = document.getElementById('cgt-box')!;
+      if (sale <= 0 || cost <= 0) {
+        box.innerHTML = '';
+        return;
+      }
+      const gain = Math.max(0, sale - cost);
+      const cgt = 0.2 * gain;
+      box.innerHTML = `
+        <div class="tool-result">
+          Gain: <strong>${fmt(gain)}</strong> → capital gains tax at 20%: <strong>${fmt(cgt)}</strong><br />
+          <span style="font-size:0.95rem;">Net proceeds before attorney fees: ${fmt(sale - cgt)}</span>
+        </div>`;
+    }
+
+    document.getElementById('share-copy')!.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lastSummary || location.href);
+        const btn = document.getElementById('share-copy')!;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = original), 2000);
+      } catch {}
+    });
+
+    ['price', 'system', 'attorney'].forEach((id) => $(id).addEventListener('input', calculate));
+    ['sale', 'cost'].forEach((id) => $(id).addEventListener('input', calculateCgt));
+    const qp = new URLSearchParams(location.search);
+    if (qp.has('price')) $('price').value = qp.get('price')!;
+    if (qp.has('sys') && ['transport', 'title', 'unsure'].includes(qp.get('sys')!)) $('system').value = qp.get('sys')!;
+    if (qp.has('att')) $('attorney').value = qp.get('att')!;
+    calculate();
+  </script>
+</BaseLayout>

@@ -1,73 +1,251 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Fixed rate cards per origin region. "published: true" lines are real carrier
+// prices we verified in July 2026; others are typical of carriers we surveyed.
+// Re-check these each quarter and around Christmas shipping season.
+const REGIONS = {
+  ny: {
+    label: 'New York / New Jersey',
+    currency: 'US$',
+    carrier: 'Chrisdan Enterprises (Queens, NY)',
+    carrierNote: 'published rates, verified July 2026',
+    barrel: 105,
+    barrelPublished: true,
+    pickupFirst: 25,
+    pickupAddl: 10,
+    pickupPublished: false,
+    pickupNote: 'typical NYC-area pickup — Chrisdan schedules pickups but does not publish the fee',
+    delivery: 35,
+    deliveryPublished: false,
+    emptyBarrels: [
+      { label: 'None — I have my own barrels', price: 0 },
+      { label: 'Fiber barrel, 77 gal — $45 each (published)', price: 45 },
+      { label: 'Plastic barrel, 77 gal — $55 each (published)', price: 55 },
+    ],
+  },
+  toronto: {
+    label: 'Toronto / GTA',
+    currency: 'CA$',
+    carrier: 'typical of Toronto carriers (e.g., Tennessee International Freight)',
+    carrierNote: 'ocean rate is a typical mid-range figure — Toronto carriers quote CA$120–200',
+    barrel: 160,
+    barrelPublished: false,
+    pickupFirst: 20,
+    pickupAddl: 10,
+    pickupPublished: true,
+    pickupNote: 'Tennessee International publishes GTA pickup at CA$20 first barrel + CA$10 each additional',
+    delivery: 45,
+    deliveryPublished: false,
+    emptyBarrels: [
+      { label: 'None — I have my own barrels', price: 0 },
+      { label: 'Empty barrel — ~CA$50 each (typical)', price: 50 },
+    ],
+  },
+  london: {
+    label: 'London, UK',
+    currency: '£',
+    carrier: 'Mike Harrison Shipping (London)',
+    carrierNote: 'published barrel rate, verified July 2026',
+    barrel: 100,
+    barrelPublished: true,
+    pickupFirst: 0,
+    pickupAddl: 0,
+    pickupPublished: true,
+    pickupNote: 'free collection in select London areas',
+    delivery: 25,
+    deliveryPublished: false,
+    emptyBarrels: [
+      { label: 'None — I have my own barrels', price: 0 },
+      { label: 'Empty barrel — ~£35 each (typical)', price: 35 },
+    ],
+  },
+};
 ---
 
 <BaseLayout
-  title="Barrel Shipping Cost Calculator — Total Cost to Ship a Barrel to Guyana"
-  description="Estimate the true all-in cost of shipping a barrel to Guyana: barrel purchase, ocean freight, pickup charges, and customs clearance at the Georgetown wharf."
+  title="Barrel Shipping Cost Calculator — Real Rates to Guyana from NY, Toronto & London"
+  description="What shipping barrels to Guyana actually costs, using real carrier rates — New York, Toronto, and London — with drop-off, home pickup, and full door-to-door options priced per barrel."
 >
   <section class="hero">
     <div class="container">
+      <a class="hero-back" href="/tools/">← All tools</a>
       <h1>Barrel Shipping Cost Calculator</h1>
       <p>
-        The freight quote is only part of the price. Add up everything — barrel, freight, pickup,
-        and clearance in Guyana — to see what your barrel really costs door to door.
+        Real carrier rates — not guesswork. Pick where you're shipping from, how many barrels,
+        and the service level, and see what it costs to get them to Guyana.
       </p>
     </div>
   </section>
 
   <section class="section">
-    <div class="container" style="max-width: var(--content-width);">
-      <div class="tool-panel">
-        <label for="barrel-cost">Barrel purchase (USD) — new fiber/plastic barrel from the shipper</label>
-        <input type="number" id="barrel-cost" value="40" min="0" step="1" />
+    <div class="container">
+      <ol class="tool-steps" aria-label="How this works">
+        <li><span class="step-num">1</span> Pick where you're shipping from</li>
+        <li><span class="step-num">2</span> Choose the service level and number of barrels</li>
+        <li><span class="step-num">3</span> See the fixed rates and your total</li>
+      </ol>
 
-        <label for="freight-cost">Ocean freight quote (USD)</label>
-        <input type="number" id="freight-cost" value="140" min="0" step="1" />
+      <div class="tool-layout">
+        <div class="tool-main">
+          <div class="tool-panel">
+            <label for="region">Shipping from</label>
+            <select id="region">
+              <option value="ny" selected>New York / New Jersey</option>
+              <option value="toronto">Toronto / GTA</option>
+              <option value="london">London, UK</option>
+            </select>
+            <p id="carrier-note" class="tool-card-hint" style="margin: 0.35rem 0 0;"></p>
 
-        <label for="pickup-cost">Home pickup charge (USD) — enter 0 if you drop off at the warehouse</label>
-        <input type="number" id="pickup-cost" value="25" min="0" step="1" />
+            <label for="service">Service level</label>
+            <select id="service">
+              <option value="dropoff">Drop off at warehouse — recipient clears &amp; collects in Guyana</option>
+              <option value="pickup">Home pickup — recipient clears &amp; collects in Guyana</option>
+              <option value="d2d" selected>Full door-to-door — pickup + clearance + Georgetown delivery</option>
+            </select>
 
-        <label for="clearance-cost">Customs &amp; wharf clearance in Guyana (USD equivalent)</label>
-        <input type="number" id="clearance-cost" value="30" min="0" step="1" />
+            <label for="barrels">Number of barrels</label>
+            <input type="number" id="barrels" value="1" min="1" max="50" step="1" inputmode="numeric" />
 
-        <label for="extra-cost">Other costs (USD) — paperwork fees, transport from the wharf, etc.</label>
-        <input type="number" id="extra-cost" value="0" min="0" step="1" />
+            <label for="empties">Need empty barrels from the carrier?</label>
+            <select id="empties"></select>
+          </div>
 
-        <div class="tool-result" id="barrel-result">—</div>
+          <div class="tool-panel">
+            <h2 class="tool-card-title">The rates you're being charged</h2>
+            <p class="tool-card-hint">
+              These are fixed carrier rates — <strong>✓ published</strong> means the carrier lists
+              this price publicly; <strong>~ typical</strong> means it's representative of quotes
+              from carriers in that region. You can't edit them here; carriers confirm the final
+              price at booking.
+            </p>
+            <table class="fee-table" id="rate-table"></table>
+          </div>
 
-        <p class="disclaimer">
-          Pre-filled numbers are <strong>typical examples</strong> — replace them with your
-          shipper's actual quote and your consignee's clearance estimate. Around Christmas, the
-          Government of Guyana has often announced a duty concession on personal-effects barrels;
-          check the Guyana Revenue Authority's announcements before budgeting for duty.
-        </p>
+          <div class="tool-panel" style="background: var(--bg-soft);">
+            <h2 class="tool-card-title">Shipping something small or urgent?</h2>
+            <p class="tool-card-hint" style="margin-bottom: 0;">
+              Air cargo beats a barrel for small loads: Laparkan's GtPAK publishes
+              <strong>US$8.35 for the first pound + US$3.40 each additional</strong> (Miami → Guyana,
+              customs clearance and Georgetown delivery included), and Chrisdan air cargo is a
+              <strong>US$45 flat rate under 22 lbs</strong> to Guyana. Ocean barrels take 3–6 weeks
+              from North America and 6–10 weeks from the UK; air takes about 3–7 days.
+            </p>
+          </div>
+        </div>
+
+        <aside class="tool-aside">
+          <div class="result-card" aria-live="polite">
+            <span class="result-label">Your shipping cost</span>
+            <div id="result-box"></div>
+          </div>
+          <div class="aside-note">
+            Rates verified July 2026 from carriers' published prices and surveyed quotes — confirm
+            with the carrier before booking, especially around Christmas season. Guyana-side
+            <strong>customs duty is separate</strong>: personal-effects shipments up to
+            <strong>US$200 CIF</strong> clear duty-free; above that, duty (5–20%) plus 14% VAT can
+            apply. Delivery beyond Georgetown (Berbice, Essequibo, interior) costs extra with every
+            carrier.
+          </div>
+          <div class="aside-links">
+            <strong>Related</strong>
+            <a href="/articles/shipping-barrel-to-guyana-cost/">Shipping a barrel to Guyana: what it really costs</a>
+            <a href="/tools/customs-duty-calculator/">Customs Duty Calculator — what's in the barrel</a>
+            <a href="/tools/remittance-fee-calculator/">Compare money transfer fees</a>
+          </div>
+        </aside>
       </div>
-
-      <h2 class="section-title" style="margin-top: 3rem;">Related guides</h2>
-      <ul>
-        <li><a href="/articles/shipping-barrel-to-guyana-cost/">Shipping a barrel to Guyana: what it really costs</a></li>
-        <li><a href="/articles/cheapest-way-to-send-money-to-guyana/">The cheapest way to send money to Guyana</a></li>
-        <li><a href="/tools/">Compare money transfer fees</a></li>
-      </ul>
     </div>
   </section>
 
-  <script>
-    const ids = ['barrel-cost', 'freight-cost', 'pickup-cost', 'clearance-cost', 'extra-cost'];
+  <div class="ad-slot">Advertisement</div>
 
-    function recalc() {
-      const total = ids.reduce((sum, id) => {
-        const el = document.getElementById(id) as HTMLInputElement;
-        return sum + (parseFloat(el.value) || 0);
-      }, 0);
-      document.getElementById('barrel-result')!.innerHTML =
-        'Estimated all-in cost: <strong>US$' +
-        total.toLocaleString('en-US', { maximumFractionDigits: 2 }) +
-        '</strong> per barrel, door to door';
+  <script define:vars={{ REGIONS }}>
+    const $ = (id) => document.getElementById(id);
+    const mark = (published) =>
+      published
+        ? '<span style="color:var(--green);font-weight:700;">✓ published</span>'
+        : '<span style="color:var(--ink-soft);font-weight:600;">~ typical</span>';
+
+    function currentRegion() {
+      return REGIONS[$('region').value] || REGIONS.ny;
     }
 
-    ids.forEach((id) => document.getElementById(id)!.addEventListener('input', recalc));
-    recalc();
+    function fmt(region, n) {
+      return region.currency + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function renderEmpties(region) {
+      const select = $('empties');
+      const prev = select.selectedIndex;
+      select.innerHTML = region.emptyBarrels
+        .map((e, i) => `<option value="${i}">${e.label}</option>`)
+        .join('');
+      select.selectedIndex = prev >= 0 && prev < region.emptyBarrels.length ? prev : 0;
+    }
+
+    function renderRateTable(region) {
+      $('rate-table').innerHTML = `
+        <thead><tr><th>Charge</th><th>Rate</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Ocean freight, per barrel</td><td>${fmt(region, region.barrel)}</td><td>${mark(region.barrelPublished)}</td></tr>
+          <tr><td>Home pickup — first barrel</td><td>${region.pickupFirst === 0 ? 'Free*' : fmt(region, region.pickupFirst)}</td><td>${mark(region.pickupPublished)}</td></tr>
+          <tr><td>Home pickup — each additional</td><td>${region.pickupAddl === 0 ? 'Free*' : fmt(region, region.pickupAddl)}</td><td>${mark(region.pickupPublished)}</td></tr>
+          <tr><td>Clearance + Georgetown delivery, per barrel</td><td>${fmt(region, region.delivery)}</td><td>${mark(region.deliveryPublished)}</td></tr>
+        </tbody>
+        <caption style="caption-side:bottom; text-align:left; font-size:0.8rem; color:var(--ink-soft); padding:0.5rem 0.85rem;">
+          ${region.carrier} — ${region.carrierNote}${region.pickupNote ? `. *Pickup: ${region.pickupNote}.` : ''}
+        </caption>
+      `;
+    }
+
+    function calculate() {
+      const region = currentRegion();
+      const service = $('service').value;
+      const qty = Math.max(1, Math.min(50, parseInt($('barrels').value, 10) || 1));
+      const empty = region.emptyBarrels[parseInt($('empties').value, 10)] || region.emptyBarrels[0];
+
+      const freight = region.barrel * qty;
+      const pickup = service === 'dropoff' ? 0 : region.pickupFirst + region.pickupAddl * (qty - 1);
+      const delivery = service === 'd2d' ? region.delivery * qty : 0;
+      const empties = empty.price * qty;
+      const total = freight + pickup + delivery + empties;
+
+      const rows = [
+        [`Ocean freight (${qty} × ${fmt(region, region.barrel)})`, freight],
+        ...(service !== 'dropoff' ? [[`Home pickup`, pickup]] : []),
+        ...(service === 'd2d' ? [[`Clearance + Georgetown delivery (${qty} × ${fmt(region, region.delivery)})`, delivery]] : []),
+        ...(empties > 0 ? [[`Empty barrels (${qty} × ${fmt(region, empty.price)})`, empties]] : []),
+      ]
+        .map(([label, v]) => `<tr><td>${label}</td><td>${v === 0 ? 'Free' : fmt(region, v)}</td></tr>`)
+        .join('');
+
+      const serviceLabel =
+        service === 'd2d'
+          ? 'door to door'
+          : service === 'pickup'
+            ? 'picked up at your home; recipient collects in Guyana'
+            : 'dropped off at the warehouse; recipient collects in Guyana';
+
+      $('result-box').innerHTML = `
+        <div class="tool-result">
+          <strong>${fmt(region, total)}</strong> for ${qty} barrel${qty > 1 ? 's' : ''}
+          <span style="font-size:0.88rem;display:block;margin-top:0.2rem;">${fmt(region, total / qty)} per barrel, ${serviceLabel}</span>
+          <table style="margin-top:0.6rem;"><tbody>${rows}</tbody></table>
+          ${service !== 'd2d' ? `<span style="font-size:0.85rem;display:block;margin-top:0.5rem;">Your recipient pays wharf clearance in Guyana separately (typically US$20–40 per barrel plus any duty).</span>` : ''}
+        </div>
+      `;
+    }
+
+    $('region').addEventListener('input', () => {
+      renderEmpties(currentRegion());
+      renderRateTable(currentRegion());
+      calculate();
+    });
+    ['service', 'barrels', 'empties'].forEach((id) => $(id).addEventListener('input', calculate));
+
+    renderEmpties(currentRegion());
+    renderRateTable(currentRegion());
+    calculate();
   </script>
 </BaseLayout>
