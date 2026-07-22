@@ -952,7 +952,12 @@ button {
 }
 
 /* ---------- Ad slots ---------- */
+/* Ad slots stay hidden until AdSense is approved — empty "Advertisement"
+   placeholders read as "under construction" to reviewers. The div markers
+   remain in the pages; once approved, drop the `display: none` and place the
+   real ad unit inside each .ad-slot. */
 .ad-slot {
+  display: none;
   max-width: var(--content-width);
   margin: 1.75rem auto;
   padding: 2.25rem 1rem;
