@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { FORM_GROUPS, ALL_FORMS, LAST_CHECKED } from '../../lib/forms';
+---
+
+<BaseLayout
+  title="Guyana Government Forms — Free Downloads (Passport, Birth, Marriage & More)"
+  description="Download the official Guyana government forms in one place — the passport Form A, and the GRO birth, marriage, death, non-impediment, correction, and overseas registration forms. Convenience copies with links to the official source."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/category/documents/">← Documents guides</a>
+      <h1>Guyana Government Forms</h1>
+      <p>
+        The {ALL_FORMS.length} forms people ask for most — passport and civil-certificate
+        applications — in one place, ready to download and print.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="forms-notice">
+        <strong>Please read:</strong> these are <strong>convenience copies</strong> we host so you
+        can download them in one click (last checked {LAST_CHECKED}). They are <strong>not an
+        official government service</strong>, and forms change — always confirm you have the current
+        version using the <em>official source</em> link on each form before you submit.
+      </div>
+
+      {
+        FORM_GROUPS.map(({ group, forms }) => (
+          <>
+            <h2 class="section-title" style="margin-top: 2.25rem;">{group}</h2>
+            <div class="forms-grid">
+              {forms.map((f) => (
+                <article class="form-card">
+                  <div class="form-card-body">
+                    <span class="form-card-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </span>
+                    <h3>{f.name}</h3>
+                    <p>{f.blurb}</p>
+                    <span class="form-card-source">Issued by {f.source}</span>
+                  </div>
+                  <div class="form-card-actions">
+                    <a class="btn gold" href={f.file} download>
+                      Download PDF ↓
+                    </a>
+                    <a class="form-card-official" href={f.officialUrl} target="_blank" rel="noopener nofollow">
+                      Official source ↗
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        ))
+      }
+
+      <h2 class="section-title" style="margin-top: 3rem;">How to use these forms</h2>
+      <ul>
+        <li><a href="/articles/renew-guyana-passport-abroad/">Guyana passport application &amp; renewal</a> — how Form A fits into the process, fees, and where to apply</li>
+        <li><a href="/articles/guyana-gro-certificates-birth-marriage-death/">Birth, marriage &amp; death certificates</a> — the GRO process, the G$300 fee, and timelines</li>
+        <li><a href="/articles/getting-married-in-guyana/">Getting married in Guyana</a> — where the non-impediment and petition forms come in</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

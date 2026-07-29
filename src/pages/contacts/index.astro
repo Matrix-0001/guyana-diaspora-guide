@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { AUTHORITY_GROUPS, CONTACTS_LAST_CHECKED } from '../../lib/authorities';
+
+const telHref = (p: string) => 'tel:' + p.replace(/[^\d+]/g, '');
+---
+
+<BaseLayout
+  title="Guyana Government & Consulate Contacts — Passport, GRO, GRA & More"
+  description="Verified contact details for the Guyana authorities you need — the passport office and appointment portal, the General Register Office, GRA, DCRA, and the consulates in New York, Washington, and Toronto."
+>
+  <section class="hero">
+    <div class="container">
+      <a class="hero-back" href="/category/documents/">← Documents guides</a>
+      <h1>Official Contacts &amp; Appointments</h1>
+      <p>
+        Phone numbers, websites, and appointment links for the Guyana authorities behind passports,
+        certificates, tax, and business — at home and at the consulates abroad.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="forms-notice">
+        <strong>Please read:</strong> these details were verified from official sources
+        (last checked {CONTACTS_LAST_CHECKED}), but offices move and numbers change — confirm on the
+        authority's own website, linked below, before relying on them. This site is a guide, not an
+        official government service.
+      </div>
+
+      {
+        AUTHORITY_GROUPS.map(({ group, authorities }) => (
+          <>
+            <h2 class="section-title" style="margin-top: 2.25rem;">{group}</h2>
+            <div class="contact-grid">
+              {authorities.map((a) => (
+                <article class="contact-card">
+                  <h3>{a.name}</h3>
+                  <p class="contact-handles">{a.handles}</p>
+                  <dl class="contact-details">
+                    {a.phone &&
+                      a.phone.map((p) => (
+                        <div class="contact-row">
+                          <dt>Phone</dt>
+                          <dd>
+                            {/^\+?[\d()\s-]+$/.test(p.split('—')[0]) ? (
+                              <a href={telHref(p)}>{p}</a>
+                            ) : (
+                              p
+                            )}
+                          </dd>
+                        </div>
+                      ))}
+                    {a.email && (
+                      <div class="contact-row">
+                        <dt>Email</dt>
+                        <dd><a href={`mailto:${a.email}`}>{a.email}</a></dd>
+                      </div>
+                    )}
+                    {a.address && (
+                      <div class="contact-row">
+                        <dt>Address</dt>
+                        <dd>{a.address}</dd>
+                      </div>
+                    )}
+                    {a.website && (
+                      <div class="contact-row">
+                        <dt>Website</dt>
+                        <dd><a href={a.website.url} target="_blank" rel="noopener nofollow">{a.website.label} ↗</a></dd>
+                      </div>
+                    )}
+                  </dl>
+                  {a.appointmentUrl && (
+                    <a class="btn gold contact-appt" href={a.appointmentUrl} target="_blank" rel="noopener nofollow">
+                      Book appointment ↗
+                    </a>
+                  )}
+                  {a.note && <p class="contact-note">{a.note}</p>}
+                </article>
+              ))}
+            </div>
+          </>
+        ))
+      }
+
+      <h2 class="section-title" style="margin-top: 3rem;">Related</h2>
+      <ul>
+        <li><a href="/articles/renew-guyana-passport-abroad/">Guyana passport application &amp; renewal</a></li>
+        <li><a href="/articles/guyana-gro-certificates-birth-marriage-death/">Birth, marriage &amp; death certificates</a></li>
+        <li><a href="/forms/">Download Guyana government forms</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
