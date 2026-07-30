@@ -86,7 +86,11 @@ export const AUTHORITY_GROUPS: { group: string; authorities: Authority[] }[] = [
       {
         name: 'Guyana High Commission — London',
         handles: 'Passports and consular services (UK)',
-        note: 'Confirm current contact details and appointment procedure on the mission’s official channels before applying.',
+        website: {
+          label: 'minfor.gov.gy — missions directory',
+          url: 'https://www.minfor.gov.gy/diplomatic-and-consular-services/missions',
+        },
+        note: 'The UK High Commission’s current phone and address are listed in the Ministry of Foreign Affairs’ official missions directory — confirm there before applying.',
       },
     ],
   },

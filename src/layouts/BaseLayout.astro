@@ -13,6 +13,13 @@ const { title, description } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 const currentPath = Astro.url.pathname;
 const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-image.png';
+
+// Google Analytics 4 — loads in production only (never in local dev, so dev
+// traffic doesn't pollute the data). The measurement ID isn't secret (it ships
+// in the client HTML), so it's baked in here; a PUBLIC_GA_MEASUREMENT_ID env
+// var overrides it if ever needed.
+const GA_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-RTX673PKCF';
+const gaEnabled = import.meta.env.PROD && GA_ID;
 ---
 
 <!doctype html>
@@ -35,6 +42,17 @@ const ogImage = Astro.site ? new URL('/og-image.png', Astro.site).href : '/og-im
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
+    {
+      gaEnabled && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+          <script
+            is:inline
+            set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+          />
+        </>
+      )
+    }
     <!-- Google AdSense script goes here once the site is approved -->
   </head>
   <body>
