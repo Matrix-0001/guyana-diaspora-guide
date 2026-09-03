@@ -34,4 +34,5 @@ export default async () => {
   return Response.json({ ok: true, total: merged.length, addedFrom: live.length, at: now });
 };
 
-export const config = { schedule: '@hourly' };
+// Every hour, on the hour (explicit cron — avoids any shorthand ambiguity).
+export const config = { schedule: '0 * * * *' };
