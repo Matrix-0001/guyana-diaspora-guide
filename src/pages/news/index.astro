@@ -82,27 +82,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const esc = (s: string) =>
       s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-    // Funnel: match a headline to our own guide/tool so readers click into our
-    // content instead of only leaving. First match wins; no match = no link.
+    // Funnel: when a HEADLINE is clearly about a topic we cover, offer a link to
+    // our own guide/tool. Match the title only (snippets are noisy and cause
+    // silly false matches), and use specific phrases — a wrong "Related" link is
+    // worse than none, so we'd rather show fewer, accurate ones.
     const TOPIC_LINKS: { kw: string[]; label: string; href: string }[] = [
-      { kw: ['cost of living', 'inflation', 'food price', 'grocery', 'cost-of-living'], label: 'Our cost-of-living explainer', href: '/articles/guyana-cost-of-living-2026/' },
+      { kw: ['cost of living', 'cost-of-living', 'inflation', 'food price', 'price of food', 'rising prices', 'cost of food'], label: 'Our cost-of-living explainer', href: '/articles/guyana-cost-of-living-2026/' },
       { kw: ['passport'], label: 'Passport guide & Form A', href: '/articles/renew-guyana-passport-abroad/' },
-      { kw: ['remittance', 'western union', 'money transfer', 'send money', 'moneygram'], label: 'Compare remittance fees', href: '/tools/remittance-fee-calculator/' },
-      { kw: ['barrel', 'shipping'], label: 'Barrel shipping calculator', href: '/tools/barrel-shipping-calculator/' },
-      { kw: ['vehicle', 'motorcar', 'car import', 'used car', 'motor vehicle'], label: 'Vehicle import calculator', href: '/tools/vehicle-import-calculator/' },
-      { kw: ['mortgage', 'housing', 'house lot', 'real estate', 'property', 'land '], label: 'Property & mortgage tools', href: '/tools/mortgage-calculator/' },
-      { kw: ['business', 'company', 'entrepreneur', 'small business'], label: 'Register a business in Guyana', href: '/articles/register-business-in-guyana/' },
-      { kw: ['visa', 'immigration', 'sponsor', 'migrant', 'deportee'], label: 'Family sponsorship guide', href: '/articles/sponsor-family-member-guyana-to-us/' },
-      { kw: ['pension', 'nis ', 'old age'], label: 'NIS pension estimator', href: '/tools/nis-pension-estimator/' },
-      { kw: ['electricity', 'gpl', 'power outage', 'blackout'], label: 'GPL bill calculator', href: '/tools/gpl-bill-calculator/' },
-      { kw: ['income tax', 'paye', 'salary', 'wage', 'minimum wage'], label: 'Salary & tax calculator', href: '/tools/salary-calculator/' },
-      { kw: ['birth certificate', 'marriage certificate', 'death certificate', 'gro '], label: 'GRO certificate forms', href: '/articles/guyana-gro-certificates-birth-marriage-death/' },
-      { kw: ['fuel', 'gasoline', 'diesel', 'gas price'], label: 'Trip fuel calculator', href: '/tools/trip-fuel-calculator/' },
+      { kw: ['remittance', 'western union', 'money transfer', 'moneygram', 'send money home'], label: 'Compare remittance fees', href: '/tools/remittance-fee-calculator/' },
+      { kw: ['barrel shipping', 'shipping barrel', 'barrels to guyana'], label: 'Barrel shipping calculator', href: '/tools/barrel-shipping-calculator/' },
+      { kw: ['car import', 'vehicle import', 'import duty', 'duty on vehicle', 'used cars', 'motor vehicle duty'], label: 'Vehicle import calculator', href: '/tools/vehicle-import-calculator/' },
+      { kw: ['mortgage', 'house lot', 'housing scheme', 'home loan', 'new homes'], label: 'Property & mortgage tools', href: '/tools/mortgage-calculator/' },
+      { kw: ['business registration', 'register a business', 'small business', 'starting a business'], label: 'Register a business in Guyana', href: '/articles/register-business-in-guyana/' },
+      { kw: ['family sponsorship', 'sponsor family', 'us visa', 'immigrant visa', 'green card'], label: 'Family sponsorship guide', href: '/articles/sponsor-family-member-guyana-to-us/' },
+      { kw: ['old age pension', 'nis pension', 'pension increase', 'pensioners'], label: 'NIS pension estimator', href: '/tools/nis-pension-estimator/' },
+      { kw: ['gpl', 'electricity', 'blackout', 'power outage', 'power supply'], label: 'GPL bill calculator', href: '/tools/gpl-bill-calculator/' },
+      { kw: ['income tax', 'paye', 'minimum wage', 'salary increase', 'wage increase'], label: 'Salary & tax calculator', href: '/tools/salary-calculator/' },
+      { kw: ['birth certificate', 'marriage certificate', 'death certificate'], label: 'GRO certificate forms', href: '/articles/guyana-gro-certificates-birth-marriage-death/' },
+      { kw: ['fuel price', 'gasoline price', 'price of gas', 'gas price', 'pump price'], label: 'Trip fuel calculator', href: '/tools/trip-fuel-calculator/' },
     ];
 
     function relatedFor(item: NewsItem) {
-      const hay = `${item.title} ${item.snippet}`.toLowerCase();
-      return TOPIC_LINKS.find((t) => t.kw.some((k) => hay.includes(k))) || null;
+      const title = item.title.toLowerCase();
+      return TOPIC_LINKS.find((t) => t.kw.some((k) => title.includes(k))) || null;
     }
 
     function render() {
