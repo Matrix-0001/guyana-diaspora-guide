@@ -1,27 +1,31 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Dev-only shim: serve the Netlify function at /api/fetch-listing under
-// `astro dev`, so the listing reader can be tested locally. In production
-// Netlify serves the real function; this plugin does nothing at build time.
-function devFetchListingApi() {
+// Dev-only shim: serve our Netlify functions at /api/<name> under `astro dev`,
+// so they can be tested locally. In production Netlify serves the real
+// functions; this plugin does nothing at build time.
+const DEV_FUNCTIONS = ['fetch-listing', 'news-feed'];
+
+function devNetlifyFunctions() {
   return {
-    name: 'dev-fetch-listing-api',
+    name: 'dev-netlify-functions',
     configureServer(server) {
-      server.middlewares.use('/api/fetch-listing', async (req, res) => {
-        try {
-          const { default: handler } = await import('./netlify/functions/fetch-listing.mjs');
-          const request = new Request(`http://localhost${req.originalUrl || req.url}`);
-          const response = await handler(request);
-          res.statusCode = response.status;
-          response.headers.forEach((value, key) => res.setHeader(key, value));
-          res.end(await response.text());
-        } catch (err) {
-          res.statusCode = 500;
-          res.setHeader('content-type', 'application/json');
-          res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
-        }
-      });
+      for (const name of DEV_FUNCTIONS) {
+        server.middlewares.use(`/api/${name}`, async (req, res) => {
+          try {
+            const { default: handler } = await import(`./netlify/functions/${name}.mjs`);
+            const request = new Request(`http://localhost${req.originalUrl || req.url}`);
+            const response = await handler(request);
+            res.statusCode = response.status;
+            response.headers.forEach((value, key) => res.setHeader(key, value));
+            res.end(await response.text());
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+          }
+        });
+      }
     },
   };
 }
@@ -32,6 +36,6 @@ export default defineConfig({
   site: 'https://guyana-diaspora-guide.netlify.app',
   integrations: [sitemap()],
   vite: {
-    plugins: [devFetchListingApi()],
+    plugins: [devNetlifyFunctions()],
   },
 });

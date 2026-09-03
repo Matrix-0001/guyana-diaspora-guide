@@ -1,0 +1,142 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Guyana News Today — Latest Headlines from Guyanese Outlets"
+  description="A live roundup of the latest Guyana news headlines from Kaieteur News, Demerara Waves, and the Guyana Chronicle — updated automatically. Tap any story to read the full article at the source."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Guyana News</h1>
+      <p>
+        The latest headlines from Guyana's news outlets, in one place and updated automatically
+        through the day. Tap any story to read the full article at the source.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="news-toolbar">
+        <div class="news-filters" id="news-filters" role="group" aria-label="Filter by source">
+          <button class="news-chip is-active" data-source="all" type="button">All sources</button>
+        </div>
+        <span class="news-updated" id="news-updated" aria-live="polite"></span>
+      </div>
+
+      <div id="news-status" class="news-status">Loading the latest headlines…</div>
+      <div id="news-list" class="news-list" hidden></div>
+
+      <p class="news-disclaimer">
+        Headlines and short summaries are drawn from each outlet's public feed and remain the work of
+        the original publisher — we link to their reporting rather than republish it. For the full
+        story, always read it at the source. Outlets currently included: Kaieteur News, Demerara
+        Waves, and the Guyana Chronicle.
+      </p>
+
+      <h2 class="section-title" style="margin-top: 3rem;">Go deeper</h2>
+      <ul>
+        <li><a href="/articles/guyana-cost-of-living-2026/">Guyana's cost of living debate: what the President said</a></li>
+        <li><a href="/tools/">Free tools &amp; calculators for money, property, and documents</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <script>
+    interface NewsItem {
+      title: string;
+      link: string;
+      source: string;
+      published: number | null;
+      snippet: string;
+    }
+
+    const listEl = document.getElementById('news-list')!;
+    const statusEl = document.getElementById('news-status')!;
+    const filtersEl = document.getElementById('news-filters')!;
+    const updatedEl = document.getElementById('news-updated')!;
+    let items: NewsItem[] = [];
+    let active = 'all';
+
+    function timeAgo(ts: number | null): string {
+      if (!ts) return '';
+      const s = Math.max(0, (Date.now() - ts) / 1000);
+      if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m ago`;
+      if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+      const d = Math.round(s / 86400);
+      if (d === 1) return 'yesterday';
+      if (d < 7) return `${d}d ago`;
+      return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+
+    const esc = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+    function render() {
+      const shown = active === 'all' ? items : items.filter((i) => i.source === active);
+      if (!shown.length) {
+        listEl.innerHTML = '<p class="news-status">No stories to show for this source right now.</p>';
+        return;
+      }
+      listEl.innerHTML = shown
+        .map(
+          (i) => `
+        <a class="news-card" href="${esc(i.link)}" target="_blank" rel="noopener nofollow">
+          <div class="news-card-top">
+            <span class="news-source">${esc(i.source)}</span>
+            <span class="news-time">${timeAgo(i.published)}</span>
+          </div>
+          <h3 class="news-title">${esc(i.title)}</h3>
+          ${i.snippet ? `<p class="news-snippet">${esc(i.snippet)}</p>` : ''}
+          <span class="news-readmore">Read at ${esc(i.source)} →</span>
+        </a>`
+        )
+        .join('');
+    }
+
+    function buildFilters(sources: string[]) {
+      for (const s of sources) {
+        const b = document.createElement('button');
+        b.className = 'news-chip';
+        b.type = 'button';
+        b.dataset.source = s;
+        b.textContent = s;
+        filtersEl.appendChild(b);
+      }
+      filtersEl.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.news-chip');
+        if (!btn) return;
+        active = btn.dataset.source!;
+        filtersEl.querySelectorAll('.news-chip').forEach((c) => c.classList.toggle('is-active', c === btn));
+        render();
+      });
+    }
+
+    async function load() {
+      try {
+        const res = await fetch('/api/news-feed');
+        if (res.status === 404) {
+          statusEl.textContent =
+            'The live news feed activates on the published site — it isn’t available in this local preview.';
+          return;
+        }
+        const data = await res.json();
+        if (!data.ok || !data.items?.length) {
+          statusEl.textContent = 'Couldn’t load the news feed right now — please try again shortly.';
+          return;
+        }
+        items = data.items;
+        buildFilters(data.sources || []);
+        statusEl.hidden = true;
+        listEl.hidden = false;
+        render();
+        if (data.fetchedAt) updatedEl.textContent = 'Updated ' + timeAgo(data.fetchedAt);
+      } catch {
+        statusEl.textContent = 'Couldn’t load the news feed right now — please check your connection and try again.';
+      }
+    }
+
+    load();
+  </script>
+</BaseLayout>
