@@ -35,11 +35,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         Waves, and the Guyana Chronicle.
       </p>
 
-      <h2 class="section-title" style="margin-top: 3rem;">Go deeper</h2>
-      <ul>
-        <li><a href="/articles/guyana-cost-of-living-2026/">Guyana's cost of living debate: what the President said</a></li>
-        <li><a href="/tools/">Free tools &amp; calculators for money, property, and documents</a></li>
-      </ul>
+      <h2 class="section-title" style="margin-top: 3rem;">Popular guides &amp; tools</h2>
+      <p style="color: var(--ink-soft); margin: 0 0 1.1rem; font-size: 0.95rem;">
+        While you're here — the practical guides and calculators Guyanese use most:
+      </p>
+      <div class="popular-grid">
+        <a class="popular-link" href="/tools/remittance-fee-calculator/">💸 Compare remittance fees</a>
+        <a class="popular-link" href="/tools/vehicle-import-calculator/">🚗 Vehicle import duty calculator</a>
+        <a class="popular-link" href="/articles/renew-guyana-passport-abroad/">🛂 Passport application &amp; renewal</a>
+        <a class="popular-link" href="/tools/barrel-shipping-calculator/">📦 Barrel shipping calculator</a>
+        <a class="popular-link" href="/articles/guyana-cost-of-living-2026/">📈 Cost-of-living explainer</a>
+        <a class="popular-link" href="/forms/">📄 Download government forms</a>
+        <a class="popular-link" href="/tools/salary-calculator/">🧮 Salary &amp; tax calculator</a>
+        <a class="popular-link" href="/contacts/">📞 Official contacts &amp; appointments</a>
+      </div>
     </div>
   </section>
 
@@ -73,6 +82,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const esc = (s: string) =>
       s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
+    // Funnel: match a headline to our own guide/tool so readers click into our
+    // content instead of only leaving. First match wins; no match = no link.
+    const TOPIC_LINKS: { kw: string[]; label: string; href: string }[] = [
+      { kw: ['cost of living', 'inflation', 'food price', 'grocery', 'cost-of-living'], label: 'Our cost-of-living explainer', href: '/articles/guyana-cost-of-living-2026/' },
+      { kw: ['passport'], label: 'Passport guide & Form A', href: '/articles/renew-guyana-passport-abroad/' },
+      { kw: ['remittance', 'western union', 'money transfer', 'send money', 'moneygram'], label: 'Compare remittance fees', href: '/tools/remittance-fee-calculator/' },
+      { kw: ['barrel', 'shipping'], label: 'Barrel shipping calculator', href: '/tools/barrel-shipping-calculator/' },
+      { kw: ['vehicle', 'motorcar', 'car import', 'used car', 'motor vehicle'], label: 'Vehicle import calculator', href: '/tools/vehicle-import-calculator/' },
+      { kw: ['mortgage', 'housing', 'house lot', 'real estate', 'property', 'land '], label: 'Property & mortgage tools', href: '/tools/mortgage-calculator/' },
+      { kw: ['business', 'company', 'entrepreneur', 'small business'], label: 'Register a business in Guyana', href: '/articles/register-business-in-guyana/' },
+      { kw: ['visa', 'immigration', 'sponsor', 'migrant', 'deportee'], label: 'Family sponsorship guide', href: '/articles/sponsor-family-member-guyana-to-us/' },
+      { kw: ['pension', 'nis ', 'old age'], label: 'NIS pension estimator', href: '/tools/nis-pension-estimator/' },
+      { kw: ['electricity', 'gpl', 'power outage', 'blackout'], label: 'GPL bill calculator', href: '/tools/gpl-bill-calculator/' },
+      { kw: ['income tax', 'paye', 'salary', 'wage', 'minimum wage'], label: 'Salary & tax calculator', href: '/tools/salary-calculator/' },
+      { kw: ['birth certificate', 'marriage certificate', 'death certificate', 'gro '], label: 'GRO certificate forms', href: '/articles/guyana-gro-certificates-birth-marriage-death/' },
+      { kw: ['fuel', 'gasoline', 'diesel', 'gas price'], label: 'Trip fuel calculator', href: '/tools/trip-fuel-calculator/' },
+    ];
+
+    function relatedFor(item: NewsItem) {
+      const hay = `${item.title} ${item.snippet}`.toLowerCase();
+      return TOPIC_LINKS.find((t) => t.kw.some((k) => hay.includes(k))) || null;
+    }
+
     function render() {
       const shown = active === 'all' ? items : items.filter((i) => i.source === active);
       if (!shown.length) {
@@ -80,18 +112,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         return;
       }
       listEl.innerHTML = shown
-        .map(
-          (i) => `
-        <a class="news-card" href="${esc(i.link)}" target="_blank" rel="noopener nofollow">
+        .map((i) => {
+          const rel = relatedFor(i);
+          return `
+        <article class="news-card">
           <div class="news-card-top">
             <span class="news-source">${esc(i.source)}</span>
             <span class="news-time">${timeAgo(i.published)}</span>
           </div>
-          <h3 class="news-title">${esc(i.title)}</h3>
+          <h3 class="news-title"><a href="${esc(i.link)}" target="_blank" rel="noopener nofollow">${esc(i.title)}</a></h3>
           ${i.snippet ? `<p class="news-snippet">${esc(i.snippet)}</p>` : ''}
-          <span class="news-readmore">Read at ${esc(i.source)} →</span>
-        </a>`
-        )
+          <div class="news-card-foot">
+            <a class="news-readmore" href="${esc(i.link)}" target="_blank" rel="noopener nofollow">Read at ${esc(i.source)} →</a>
+            ${rel ? `<a class="news-related" href="${esc(rel.href)}">${esc(rel.label)} →</a>` : ''}
+          </div>
+        </article>`;
+        })
         .join('');
     }
 
