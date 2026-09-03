@@ -251,8 +251,19 @@ button {
 }
 
 @media (max-width: 760px) {
+  /* On mobile "Tools" wraps to the left of the header, so a right-anchored
+     menu opens off-screen-left. Anchor it to the sticky header instead and
+     span it edge-to-edge below the header. */
+  .nav-dropdown {
+    position: static;
+  }
+
   .nav-dropdown-menu {
     grid-template-columns: 1fr;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    max-width: none;
     max-height: 70vh;
     overflow-y: auto;
   }
