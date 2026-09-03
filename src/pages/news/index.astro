@@ -18,6 +18,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <section class="section">
     <div class="container">
+      <form class="news-search" id="news-search-form" role="search">
+        <input
+          type="search"
+          id="news-search"
+          class="news-search-input"
+          placeholder="Search Guyana news headlines…"
+          aria-label="Search Guyana news headlines"
+          autocomplete="off"
+        />
+      </form>
+
       <div class="news-toolbar">
         <div class="news-filters" id="news-filters" role="group" aria-label="Filter by source">
           <button class="news-chip is-active" data-source="all" type="button">All sources</button>
@@ -31,8 +42,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <p class="news-disclaimer">
         Headlines and short summaries are drawn from each outlet's public feed and remain the work of
         the original publisher — we link to their reporting rather than republish it. For the full
-        story, always read it at the source. Outlets currently included: Kaieteur News, Demerara
-        Waves, and the Guyana Chronicle.
+        story, always read it at the source. Search covers a rolling archive that grows toward six
+        months from the day it started. Outlets currently included: Kaieteur News, Demerara Waves,
+        and the Guyana Chronicle.
       </p>
 
       <h2 class="section-title" style="margin-top: 3rem;">Popular guides &amp; tools</h2>
@@ -65,8 +77,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const statusEl = document.getElementById('news-status')!;
     const filtersEl = document.getElementById('news-filters')!;
     const updatedEl = document.getElementById('news-updated')!;
+    const searchInput = document.getElementById('news-search') as HTMLInputElement;
+    const searchForm = document.getElementById('news-search-form') as HTMLFormElement;
     let items: NewsItem[] = [];
     let active = 'all';
+    let searching = false;
+    let lastUpdatedText = '';
 
     function timeAgo(ts: number | null): string {
       if (!ts) return '';
@@ -107,13 +123,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return TOPIC_LINKS.find((t) => t.kw.some((k) => title.includes(k))) || null;
     }
 
-    function render() {
-      const shown = active === 'all' ? items : items.filter((i) => i.source === active);
-      if (!shown.length) {
-        listEl.innerHTML = '<p class="news-status">No stories to show for this source right now.</p>';
-        return;
-      }
-      listEl.innerHTML = shown
+    function renderList(list: NewsItem[]) {
+      listEl.innerHTML = list
         .map((i) => {
           const rel = relatedFor(i);
           return `
@@ -133,6 +144,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         .join('');
     }
 
+    function render() {
+      const shown = active === 'all' ? items : items.filter((i) => i.source === active);
+      if (!shown.length) {
+        listEl.innerHTML = '<p class="news-status">No stories to show for this source right now.</p>';
+        return;
+      }
+      renderList(shown);
+    }
+
     function buildFilters(sources: string[]) {
       for (const s of sources) {
         const b = document.createElement('button');
@@ -145,6 +165,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       filtersEl.addEventListener('click', (e) => {
         const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.news-chip');
         if (!btn) return;
+        if (searching) {
+          searching = false;
+          searchInput.value = '';
+          updatedEl.textContent = lastUpdatedText;
+        }
         active = btn.dataset.source!;
         filtersEl.querySelectorAll('.news-chip').forEach((c) => c.classList.toggle('is-active', c === btn));
         render();
@@ -169,10 +194,60 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         statusEl.hidden = true;
         listEl.hidden = false;
         render();
-        if (data.fetchedAt) updatedEl.textContent = 'Updated ' + timeAgo(data.fetchedAt);
+        if (data.fetchedAt) {
+          lastUpdatedText = 'Updated ' + timeAgo(data.fetchedAt);
+          if (!searching) updatedEl.textContent = lastUpdatedText;
+        }
       } catch {
         statusEl.textContent = 'Couldn’t load the news feed right now — please check your connection and try again.';
       }
+    }
+
+    // Search the rolling archive (server-side, over the last 6 months as it grows).
+    async function doSearch(q: string) {
+      searching = true;
+      updatedEl.textContent = 'Searching…';
+      statusEl.hidden = true;
+      listEl.hidden = false;
+      try {
+        const res = await fetch('/api/news-feed?q=' + encodeURIComponent(q));
+        const data = await res.json();
+        const results: NewsItem[] = data.items || [];
+        if (!results.length) {
+          listEl.innerHTML = `<p class="news-status">No headlines found for “${esc(q)}”. The searchable archive is still building up — try a shorter term, or check back as it grows.</p>`;
+          updatedEl.textContent = '0 results';
+          return;
+        }
+        renderList(results);
+        updatedEl.textContent = `${results.length} result${results.length === 1 ? '' : 's'} for “${q}”`;
+      } catch {
+        listEl.innerHTML = '<p class="news-status">Search is unavailable right now — please try again shortly.</p>';
+      }
+    }
+
+    function exitSearch() {
+      if (!searching) return;
+      searching = false;
+      updatedEl.textContent = lastUpdatedText;
+      render();
+    }
+
+    let debounceId = 0;
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim();
+        window.clearTimeout(debounceId);
+        if (q.length < 2) {
+          exitSearch();
+          return;
+        }
+        debounceId = window.setTimeout(() => doSearch(q), 400);
+      });
+      searchForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const q = searchInput.value.trim();
+        if (q.length >= 2) doSearch(q);
+      });
     }
 
     load();
